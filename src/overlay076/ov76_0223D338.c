@@ -61,12 +61,12 @@ static BOOL ov76_0223EB1C(BallCapsuleSystem *ballCapsuleSys);
 
 void ov76_0223D338(BallCapsuleSystem *ballCapsuleSys)
 {
-    BallCapsule_Copy(ballCapsuleSys->capsuleData[ballCapsuleSys->selectedCapsules[0]].unk_04, &ballCapsuleSys->selectedCapsule);
+    BallCapsule_Copy(ballCapsuleSys->capsuleData[ballCapsuleSys->selectedCapsules[0]].ballCapsule, &ballCapsuleSys->selectedCapsule);
 }
 
 void ov76_0223D350(BallCapsuleSystem *ballCapsuleSys)
 {
-    BallCapsule_Copy(&ballCapsuleSys->selectedCapsule, ballCapsuleSys->capsuleData[ballCapsuleSys->selectedCapsules[0]].unk_04);
+    BallCapsule_Copy(&ballCapsuleSys->selectedCapsule, ballCapsuleSys->capsuleData[ballCapsuleSys->selectedCapsules[0]].ballCapsule);
 }
 
 void ov76_0223D368(BallCapsuleSystem *ballCapsuleSys)
@@ -99,8 +99,8 @@ void ov76_0223D3CC(BallCapsuleSystem *ballCapsuleSys)
     int v1;
     Pokemon *v2;
 
-    if (ballCapsuleSys->capsuleData[ballCapsuleSys->selectedCapsules[0]].unk_00 != 0xff) {
-        v2 = ballCapsuleSys->appData->unk_04[ballCapsuleSys->capsuleData[ballCapsuleSys->selectedCapsules[0]].unk_00];
+    if (ballCapsuleSys->capsuleData[ballCapsuleSys->selectedCapsules[0]].partyIndex != 0xff) {
+        v2 = ballCapsuleSys->appData->unk_04[ballCapsuleSys->capsuleData[ballCapsuleSys->selectedCapsules[0]].partyIndex];
         Pokemon_Copy(v2, ballCapsuleSys->mon);
 
         return;
@@ -149,8 +149,8 @@ int ov76_0223D45C(BallCapsuleSystem *ballCapsuleSys, int param1)
     int v1;
     int v2;
 
-    v0 = ballCapsuleSys->editData[param1].unk_00;
-    v1 = ballCapsuleSys->editData[param1].unk_04;
+    v0 = ballCapsuleSys->editData[param1].partyIndex;
+    v1 = ballCapsuleSys->editData[param1].hasSeals;
 
     if ((v0 == 0xff) && (v1 == 0)) {
         v2 = 0;
@@ -321,7 +321,7 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
         ov76_0223C4AC(ballCapsuleSys);
         ov76_0223D338(ballCapsuleSys);
         ov76_0223D368(ballCapsuleSys);
-        ov76_0223BA90(ballCapsuleSys, ballCapsuleSys->sealCasePages.unk_00);
+        ov76_0223BA90(ballCapsuleSys, ballCapsuleSys->sealCasePages.currentPage);
         ov76_0223BB04(ballCapsuleSys);
         ov76_0223BBAC(ballCapsuleSys);
         ov76_0223D2F4(ballCapsuleSys, 0);
@@ -516,35 +516,35 @@ void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
     switch (param0) {
     case 8:
         if (param1 == TOUCH_BUTTON_PRESSED) {
-            if (ballCapsuleSys->sealCasePages.unk_00 > 0) {
-                ballCapsuleSys->sealCasePages.unk_00--;
+            if (ballCapsuleSys->sealCasePages.currentPage > 0) {
+                ballCapsuleSys->sealCasePages.currentPage--;
             } else {
-                ballCapsuleSys->sealCasePages.unk_00 = ballCapsuleSys->sealCasePages.unk_04 - 1;
+                ballCapsuleSys->sealCasePages.currentPage = ballCapsuleSys->sealCasePages.totalPages - 1;
             }
 
             ov76_0223BC70(ballCapsuleSys);
-            ov76_0223BA90(ballCapsuleSys, ballCapsuleSys->sealCasePages.unk_00);
+            ov76_0223BA90(ballCapsuleSys, ballCapsuleSys->sealCasePages.currentPage);
             ov76_0223BB04(ballCapsuleSys);
             ov76_0223BBAC(ballCapsuleSys);
             ov76_0223CC8C(ballCapsuleSys);
             Sound_PlayEffect(SEQ_SE_DP_CUSTOM02);
         }
 
-        ov76_0223D94C(ballCapsuleSys->editorSprites.unk_00[8], param1);
+        ov76_0223D94C(ballCapsuleSys->editorSprites.sprites[8], param1);
         break;
     case 9:
         if (param1 == TOUCH_BUTTON_PRESSED) {
-            ballCapsuleSys->sealCasePages.unk_00++;
-            ballCapsuleSys->sealCasePages.unk_00 %= ballCapsuleSys->sealCasePages.unk_04;
+            ballCapsuleSys->sealCasePages.currentPage++;
+            ballCapsuleSys->sealCasePages.currentPage %= ballCapsuleSys->sealCasePages.totalPages;
 
             ov76_0223BC70(ballCapsuleSys);
-            ov76_0223BA90(ballCapsuleSys, ballCapsuleSys->sealCasePages.unk_00);
+            ov76_0223BA90(ballCapsuleSys, ballCapsuleSys->sealCasePages.currentPage);
             ov76_0223BB04(ballCapsuleSys);
             ov76_0223BBAC(ballCapsuleSys);
             ov76_0223CC8C(ballCapsuleSys);
             Sound_PlayEffect(SEQ_SE_DP_CUSTOM02);
         }
-        ov76_0223D94C(ballCapsuleSys->editorSprites.unk_00[9], param1);
+        ov76_0223D94C(ballCapsuleSys->editorSprites.sprites[9], param1);
         break;
     case 10:
         if (param1 == TOUCH_BUTTON_PRESSED) {
@@ -553,10 +553,10 @@ void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
                 Sound_PlayEffect(SEQ_SE_DP_DECIDE);
             }
 
-            ov76_0223DA00(ballCapsuleSys->editorSprites.unk_00[10], NULL);
+            ov76_0223DA00(ballCapsuleSys->editorSprites.sprites[10], NULL);
         }
 
-        ov76_0223D94C(ballCapsuleSys->editorSprites.unk_00[10], param1);
+        ov76_0223D94C(ballCapsuleSys->editorSprites.sprites[10], param1);
         break;
     case 11:
         if (param1 == TOUCH_BUTTON_PRESSED) {
@@ -566,10 +566,10 @@ void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
                 Sound_PlayEffect(SEQ_SE_DP_PIRORIRO);
             }
 
-            ov76_0223DA00(ballCapsuleSys->editorSprites.unk_00[11], ballCapsuleSys->ballCapsuleEditor.unk_164[0]);
+            ov76_0223DA00(ballCapsuleSys->editorSprites.sprites[11], ballCapsuleSys->ballCapsuleEditor.unk_164[0]);
         }
 
-        ov76_0223D94C(ballCapsuleSys->editorSprites.unk_00[11], param1);
+        ov76_0223D94C(ballCapsuleSys->editorSprites.sprites[11], param1);
         break;
     case 12:
         if (param1 == TOUCH_BUTTON_PRESSED) {
@@ -579,10 +579,10 @@ void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
                 Sound_PlayEffect(SEQ_SE_DP_DECIDE);
             }
 
-            ov76_0223DA00(ballCapsuleSys->editorSprites.unk_00[12], ballCapsuleSys->ballCapsuleEditor.unk_164[1]);
+            ov76_0223DA00(ballCapsuleSys->editorSprites.sprites[12], ballCapsuleSys->ballCapsuleEditor.unk_164[1]);
         }
 
-        ov76_0223D94C(ballCapsuleSys->editorSprites.unk_00[12], param1);
+        ov76_0223D94C(ballCapsuleSys->editorSprites.sprites[12], param1);
         break;
     case 0:
     case 1:
@@ -599,16 +599,16 @@ void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
                 Sound_PlayEffect(SEQ_SE_DP_CUSTOM06);
                 ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 15);
             } else {
-                if ((ballCapsuleSys->sealCasePages.unk_08[param0] != 0) && (SealCase_GetSealCount(ballCapsuleSys->sealCounts, ballCapsuleSys->sealCasePages.unk_08[param0] - 1) != 0)) {
+                if ((ballCapsuleSys->sealCasePages.currentPageSeals[param0] != 0) && (SealCase_GetSealCount(ballCapsuleSys->sealCounts, ballCapsuleSys->sealCasePages.currentPageSeals[param0] - 1) != 0)) {
                     ballCapsuleSys->ballCapsuleEditor.unk_00 = ov76_0223B278(ballCapsuleSys, param0);
-                    v1 = sub_02098164(ballCapsuleSys->sealCasePages.unk_08[param0]);
+                    v1 = sub_02098164(ballCapsuleSys->sealCasePages.currentPageSeals[param0]);
 
                     ov76_0223CDC4(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], v1);
-                    GiveOrTakeSeal(ballCapsuleSys->appData->unk_20, ballCapsuleSys->sealCasePages.unk_08[param0], -1);
+                    GiveOrTakeSeal(ballCapsuleSys->appData->unk_20, ballCapsuleSys->sealCasePages.currentPageSeals[param0], -1);
                     ov76_0223CD20(ballCapsuleSys, param0);
                     Sound_PlayEffect(SEQ_SE_DP_BOX02);
                 } else {
-                    if (ballCapsuleSys->sealCasePages.unk_08[param0] != 0) {
+                    if (ballCapsuleSys->sealCasePages.currentPageSeals[param0] != 0) {
                         Sound_PlayEffect(SEQ_SE_DP_CUSTOM06);
                         ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 16);
                     }
@@ -630,7 +630,7 @@ void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
         if (param1 == TOUCH_BUTTON_PRESSED) {
             v2 = param0 - 13;
             ov76_0223B5C4(ballCapsuleSys, param1, v2);
-            v3 = sub_02098164(ballCapsuleSys->placedSeals[v2].unk_04);
+            v3 = sub_02098164(ballCapsuleSys->placedSeals[v2].type);
 
             ov76_0223CDC4(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], v3);
             Sound_PlayEffect(SEQ_SE_DP_BOX02);
@@ -679,7 +679,7 @@ void ov76_0223DCC0(BallCapsuleSystem *ballCapsuleSys)
 
     for (; v0 < 21; v0++) {
         ballCapsuleSys->ballCapsuleEditor.buttonRects[v0] = v1;
-        ballCapsuleSys->placedSeals[v0 - 13].unk_0C = &ballCapsuleSys->ballCapsuleEditor.buttonRects[v0];
+        ballCapsuleSys->placedSeals[v0 - 13].rect = &ballCapsuleSys->ballCapsuleEditor.buttonRects[v0];
     }
 
     ballCapsuleSys->ballCapsuleEditor.unk_F8 = TouchScreenActions_RegisterHandler(ballCapsuleSys->ballCapsuleEditor.buttonRects, 21, ov76_0223DA34, ballCapsuleSys, HEAP_ID_BALL_CAPSULE_SYSTEM);
@@ -981,8 +981,8 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         {
             Pokemon *v8;
 
-            if (ballCapsuleSys->editData[ballCapsuleSys->selectedCapsules[0]].unk_00 != 0xff) {
-                v8 = ballCapsuleSys->appData->unk_04[ballCapsuleSys->editData[ballCapsuleSys->selectedCapsules[0]].unk_00];
+            if (ballCapsuleSys->editData[ballCapsuleSys->selectedCapsules[0]].partyIndex != 0xff) {
+                v8 = ballCapsuleSys->appData->unk_04[ballCapsuleSys->editData[ballCapsuleSys->selectedCapsules[0]].partyIndex];
 
                 Pokemon_SetValue(v8, MON_DATA_BALL_CAPSULE, SealCase_GetCapsuleById(ballCapsuleSys->appData->unk_20, ballCapsuleSys->selectedCapsules[0]));
             }
@@ -1137,19 +1137,19 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         if (v14) {
             int v15;
 
-            v15 = sub_02098164(ballCapsuleSys->placedSeals[v13].unk_04);
+            v15 = sub_02098164(ballCapsuleSys->placedSeals[v13].type);
             ov76_0223CDC4(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], v15);
-            ManagedSprite_SetPositionXY(ballCapsuleSys->placedSeals[v13].unk_08, v11, v12);
+            ManagedSprite_SetPositionXY(ballCapsuleSys->placedSeals[v13].sealSprite, v11, v12);
             ov76_0223B758(ballCapsuleSys, v13);
             ov76_0223B7D4(ballCapsuleSys, v13);
         } else {
             BOOL v16;
 
             v16 = ov76_0223B6C4(ballCapsuleSys, v13);
-            ov76_0223B184(ballCapsuleSys->placedSeals[v13].unk_0C, ballCapsuleSys->placedSeals[v13].unk_08, 0);
+            ov76_0223B184(ballCapsuleSys->placedSeals[v13].rect, ballCapsuleSys->placedSeals[v13].sealSprite, 0);
 
             if (v16 == 0) {
-                GiveOrTakeSeal2(ballCapsuleSys->appData->unk_20, ballCapsuleSys->placedSeals[v13].unk_04, +1);
+                GiveOrTakeSeal2(ballCapsuleSys->appData->unk_20, ballCapsuleSys->placedSeals[v13].type, +1);
                 ov76_0223CC8C(ballCapsuleSys);
                 ov76_0223B704(ballCapsuleSys, v13);
             }
@@ -1206,13 +1206,13 @@ void ov76_0223E91C(BallCapsuleSystem *ballCapsuleSys, int param1)
     int v2 = 0;
     BallCapsule v3;
 
-    v1 = ballCapsuleSys->capsuleData[param1].unk_00;
+    v1 = ballCapsuleSys->capsuleData[param1].partyIndex;
 
     if (v1 != 0xff) {
         Pokemon_SetValue(ballCapsuleSys->appData->unk_04[v1], MON_DATA_BALL_CAPSULE_ID, (u8 *)&v2);
     }
 
-    ballCapsuleSys->capsuleData[param1].unk_00 = 0xff;
+    ballCapsuleSys->capsuleData[param1].partyIndex = 0xff;
     ov76_0223C7E0(ballCapsuleSys);
 }
 

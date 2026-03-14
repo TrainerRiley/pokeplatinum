@@ -79,17 +79,20 @@ enum BallCapsuleEditorWindows {
 };
 
 typedef struct {
-    BOOL unk_00;
-    u8 unk_04;
-    u8 unk_05;
-    u8 unk_06;
+    BOOL tapped;
+    u8 type;
+
+    u8 x;
+    u8 y;
+
     u8 padding_07;
-    ManagedSprite *unk_08;
-    TouchScreenRect *unk_0C;
+
+    ManagedSprite *sealSprite;
+    TouchScreenRect *rect;
 } PlacedSeal;
 
 typedef struct {
-    ManagedSprite *unk_00[BALL_CAPSULE_BUTTON_MAX];
+    ManagedSprite *sprites[BALL_CAPSULE_BUTTON_MAX];
 } BallCapsuleEditorSprites;
 
 typedef struct {
@@ -121,20 +124,20 @@ typedef struct {
 } BallCapsuleEditor;
 
 typedef struct {
-    int unk_00;
-    BallCapsule *unk_04;
+    int partyIndex;
+    BallCapsule *ballCapsule;
 } BallCapsuleData;
 
 typedef struct {
-    int unk_00;
-    int unk_04;
-    ManagedSprite *unk_08;
+    int partyIndex;
+    int hasSeals;
+    ManagedSprite *sprite;
 } BallCapsuleEditData;
 
 typedef struct {
-    int unk_00;
-    int unk_04;
-    u8 unk_08[SEALS_PER_PAGE];
+    int currentPage;
+    int totalPages;
+    u8 currentPageSeals[SEALS_PER_PAGE];
 } SealCasePages;
 
 typedef struct {

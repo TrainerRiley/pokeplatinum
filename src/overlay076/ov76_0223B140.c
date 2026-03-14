@@ -65,32 +65,32 @@ void ov76_0223B1E0(BallCapsuleSystem *ballCapsuleSys)
     int v0;
 
     for (v0 = 0; v0 < 8; v0++) {
-        if (ballCapsuleSys->placedSeals[v0].unk_08 == NULL) {
+        if (ballCapsuleSys->placedSeals[v0].sealSprite == NULL) {
             continue;
         }
 
-        ManagedSprite_OffsetPositionXY(ballCapsuleSys->placedSeals[v0].unk_08, -(+7 * 8), -(-2 * 8));
+        ManagedSprite_OffsetPositionXY(ballCapsuleSys->placedSeals[v0].sealSprite, -(+7 * 8), -(-2 * 8));
     }
 }
 
 void ov76_0223B208(BallCapsuleSystem *ballCapsuleSys)
 {
     int i;
-    BallCapsule *v1 = ballCapsuleSys->capsuleData[ballCapsuleSys->selectedCapsules[0]].unk_04;
+    BallCapsule *v1 = ballCapsuleSys->capsuleData[ballCapsuleSys->selectedCapsules[0]].ballCapsule;
 
     for (i = 0; i < SEALS_PER_CAPSULE; i++) {
         if (v1->seals[i].type != SEAL_DUMMY) {
-            ballCapsuleSys->placedSeals[i].unk_04 = v1->seals[i].type;
-            ballCapsuleSys->placedSeals[i].unk_05 = v1->seals[i].x;
-            ballCapsuleSys->placedSeals[i].unk_06 = v1->seals[i].y;
+            ballCapsuleSys->placedSeals[i].type = v1->seals[i].type;
+            ballCapsuleSys->placedSeals[i].x = v1->seals[i].x;
+            ballCapsuleSys->placedSeals[i].y = v1->seals[i].y;
 
             ov76_0223B52C(ballCapsuleSys, i);
-            ov76_0223B184(ballCapsuleSys->placedSeals[i].unk_0C, ballCapsuleSys->placedSeals[i].unk_08, 0);
+            ov76_0223B184(ballCapsuleSys->placedSeals[i].rect, ballCapsuleSys->placedSeals[i].sealSprite, 0);
 
-            ballCapsuleSys->placedSeals[i].unk_00 = 1;
+            ballCapsuleSys->placedSeals[i].tapped = 1;
         } else {
-            ballCapsuleSys->placedSeals[i].unk_00 = 0;
-            ballCapsuleSys->placedSeals[i].unk_04 = 0;
+            ballCapsuleSys->placedSeals[i].tapped = 0;
+            ballCapsuleSys->placedSeals[i].type = 0;
         }
     }
 }
@@ -101,23 +101,23 @@ int ov76_0223B278(BallCapsuleSystem *ballCapsuleSys, u8 param1)
     u32 v1, v2;
 
     for (v0 = 0; v0 < 8; v0++) {
-        if (ballCapsuleSys->placedSeals[v0].unk_00 == 1) {
+        if (ballCapsuleSys->placedSeals[v0].tapped == 1) {
             continue;
         }
 
-        ballCapsuleSys->placedSeals[v0].unk_04 = ballCapsuleSys->sealCasePages.unk_08[param1];
-        ballCapsuleSys->placedSeals[v0].unk_05 = 190;
-        ballCapsuleSys->placedSeals[v0].unk_06 = 70;
+        ballCapsuleSys->placedSeals[v0].type = ballCapsuleSys->sealCasePages.currentPageSeals[param1];
+        ballCapsuleSys->placedSeals[v0].x = 190;
+        ballCapsuleSys->placedSeals[v0].y = 70;
 
         TouchScreen_GetHoldState(&v1, &v2);
 
-        ballCapsuleSys->placedSeals[v0].unk_05 = v1;
-        ballCapsuleSys->placedSeals[v0].unk_06 = v2;
+        ballCapsuleSys->placedSeals[v0].x = v1;
+        ballCapsuleSys->placedSeals[v0].y = v2;
 
         ov76_0223B52C(ballCapsuleSys, v0);
         ov76_0223B314(ballCapsuleSys, v0);
 
-        ballCapsuleSys->placedSeals[v0].unk_00 = 1;
+        ballCapsuleSys->placedSeals[v0].tapped = 1;
 
         return v0;
     }
@@ -131,7 +131,7 @@ BOOL ov76_0223B2F8(BallCapsuleSystem *ballCapsuleSys)
     u32 v1, v2;
 
     for (v0 = 0; v0 < 8; v0++) {
-        if (ballCapsuleSys->placedSeals[v0].unk_00 == 1) {
+        if (ballCapsuleSys->placedSeals[v0].tapped == 1) {
             continue;
         }
 
@@ -146,19 +146,19 @@ void ov76_0223B314(BallCapsuleSystem *ballCapsuleSys, u8 param1)
     int v0;
 
     for (v0 = 0; v0 < 8; v0++) {
-        if (ballCapsuleSys->placedSeals[v0].unk_00 != 1) {
+        if (ballCapsuleSys->placedSeals[v0].tapped != 1) {
             continue;
         }
 
         if (v0 == param1) {
-            ManagedSprite_SetPriority(ballCapsuleSys->placedSeals[v0].unk_08, 0);
+            ManagedSprite_SetPriority(ballCapsuleSys->placedSeals[v0].sealSprite, 0);
         } else {
-            int v1 = ManagedSprite_GetPriority(ballCapsuleSys->placedSeals[v0].unk_08);
+            int v1 = ManagedSprite_GetPriority(ballCapsuleSys->placedSeals[v0].sealSprite);
 
             if (v1 == 0) {
-                ManagedSprite_SetPriority(ballCapsuleSys->placedSeals[v0].unk_08, v1 + 1);
+                ManagedSprite_SetPriority(ballCapsuleSys->placedSeals[v0].sealSprite, v1 + 1);
             } else {
-                ManagedSprite_SetPriority(ballCapsuleSys->placedSeals[v0].unk_08, v1 + 2);
+                ManagedSprite_SetPriority(ballCapsuleSys->placedSeals[v0].sealSprite, v1 + 2);
             }
         }
     }
@@ -199,8 +199,8 @@ void ov76_0223B400(BallCapsuleSystem *ballCapsuleSys)
         v3[i] = 0xFF;
         v4[i] = 0xFF;
 
-        if (ballCapsuleSys->placedSeals[i].unk_08 != NULL) {
-            v3[i] = ManagedSprite_GetPriority(ballCapsuleSys->placedSeals[i].unk_08);
+        if (ballCapsuleSys->placedSeals[i].sealSprite != NULL) {
+            v3[i] = ManagedSprite_GetPriority(ballCapsuleSys->placedSeals[i].sealSprite);
             v4[i] = i;
             v2++;
         }
@@ -226,30 +226,30 @@ void ov76_0223B400(BallCapsuleSystem *ballCapsuleSys)
     BallCapsule v8;
 
     for (i = 0; i < SEALS_PER_CAPSULE; i++) {
-        v7.seals[i].type = ballCapsuleSys->placedSeals[i].unk_04;
-        v7.seals[i].x = ballCapsuleSys->placedSeals[i].unk_05;
-        v7.seals[i].y = ballCapsuleSys->placedSeals[i].unk_06;
+        v7.seals[i].type = ballCapsuleSys->placedSeals[i].type;
+        v7.seals[i].x = ballCapsuleSys->placedSeals[i].x;
+        v7.seals[i].y = ballCapsuleSys->placedSeals[i].y;
     }
 
     v8 = v7;
 
     for (i = 0; i < SEALS_PER_CAPSULE; i++) {
         if (v4[i] == 0xFF) {
-            ballCapsuleSys->placedSeals[i].unk_04 = 0;
-            ballCapsuleSys->placedSeals[i].unk_05 = 0;
-            ballCapsuleSys->placedSeals[i].unk_06 = 0;
+            ballCapsuleSys->placedSeals[i].type = 0;
+            ballCapsuleSys->placedSeals[i].x = 0;
+            ballCapsuleSys->placedSeals[i].y = 0;
             continue;
         }
 
-        ballCapsuleSys->placedSeals[i].unk_04 = v8.seals[v4[i]].type;
-        ballCapsuleSys->placedSeals[i].unk_05 = v8.seals[v4[i]].x;
-        ballCapsuleSys->placedSeals[i].unk_06 = v8.seals[v4[i]].y;
+        ballCapsuleSys->placedSeals[i].type = v8.seals[v4[i]].type;
+        ballCapsuleSys->placedSeals[i].x = v8.seals[v4[i]].x;
+        ballCapsuleSys->placedSeals[i].y = v8.seals[v4[i]].y;
 
-        if (ballCapsuleSys->placedSeals[v4[i]].unk_08 == NULL) {
+        if (ballCapsuleSys->placedSeals[v4[i]].sealSprite == NULL) {
             continue;
         }
 
-        ManagedSprite_SetPriority(ballCapsuleSys->placedSeals[v4[i]].unk_08, i);
+        ManagedSprite_SetPriority(ballCapsuleSys->placedSeals[v4[i]].sealSprite, i);
     }
 }
 
@@ -264,15 +264,15 @@ BOOL ov76_0223B52C(BallCapsuleSystem *ballCapsuleSys, u8 param1)
     PaletteData *v6 = ballCapsuleSys->ballCapsuleEditor.paletteData;
     v2 = &ballCapsuleSys->placedSeals[param1];
 
-    if (v2->unk_00 == 1) {
+    if (v2->tapped == 1) {
         GF_ASSERT(0);
         return 0;
     }
 
-    ov76_0223B36C(ballCapsuleSys, v2->unk_04, param1);
+    ov76_0223B36C(ballCapsuleSys, v2->type, param1);
 
-    v3.x = v2->unk_05;
-    v3.y = v2->unk_06;
+    v3.x = v2->x;
+    v3.y = v2->y;
     v3.z = 0;
     v3.animIdx = 0;
     v3.plttIdx = 0;
@@ -283,23 +283,23 @@ BOOL ov76_0223B52C(BallCapsuleSystem *ballCapsuleSys, u8 param1)
     v3.resources[4] = SPRITE_RESOURCE_NONE;
     v3.resources[5] = SPRITE_RESOURCE_NONE;
 
-    v0 = sub_02098140(v2->unk_04);
+    v0 = sub_02098140(v2->type);
     v1 = (param1 + 20000);
 
     v3.resources[0] = v1;
     v3.resources[1] = 21000 + 293;
     v3.resources[2] = 22000 + 93;
     v3.resources[3] = 23000 + 1;
-    v2->unk_08 = SpriteSystem_NewSprite(v4, v5, &v3);
+    v2->sealSprite = SpriteSystem_NewSprite(v4, v5, &v3);
 
-    ManagedSprite_TickFrame(v2->unk_08);
+    ManagedSprite_TickFrame(v2->sealSprite);
 
     return 1;
 }
 
 BOOL ov76_0223B5C4(BallCapsuleSystem *ballCapsuleSys, u32 param1, u8 param2)
 {
-    if (ballCapsuleSys->placedSeals[param2].unk_00 == 0) {
+    if (ballCapsuleSys->placedSeals[param2].tapped == 0) {
         return 1;
     }
 
@@ -314,7 +314,7 @@ BOOL ov76_0223B5C4(BallCapsuleSystem *ballCapsuleSys, u32 param1, u8 param2)
         s16 v0, v1;
 
         if (ballCapsuleSys->ballCapsuleEditor.unk_00 == param2) {
-            ov76_0223B184(ballCapsuleSys->placedSeals[param2].unk_0C, ballCapsuleSys->placedSeals[param2].unk_08, 1);
+            ov76_0223B184(ballCapsuleSys->placedSeals[param2].rect, ballCapsuleSys->placedSeals[param2].sealSprite, 1);
             ov76_0223B758(ballCapsuleSys, param2);
             ov76_0223B7D4(ballCapsuleSys, param2);
         }
@@ -325,7 +325,7 @@ BOOL ov76_0223B5C4(BallCapsuleSystem *ballCapsuleSys, u32 param1, u8 param2)
 
         if (ballCapsuleSys->ballCapsuleEditor.unk_00 == 0xFF) {
             v2 = ov76_0223B6C4(ballCapsuleSys, param2);
-            ov76_0223B184(ballCapsuleSys->placedSeals[param2].unk_0C, ballCapsuleSys->placedSeals[param2].unk_08, 0);
+            ov76_0223B184(ballCapsuleSys->placedSeals[param2].rect, ballCapsuleSys->placedSeals[param2].sealSprite, 0);
 
             if (v2 == 0) {
                 ov76_0223B704(ballCapsuleSys, param2);
@@ -347,7 +347,7 @@ void ov76_0223B678(BallCapsuleSystem *ballCapsuleSys)
     int i;
 
     for (i = 0; i < SEALS_PER_CAPSULE; i++) {
-        if (ballCapsuleSys->placedSeals[i].unk_00 != 1) {
+        if (ballCapsuleSys->placedSeals[i].tapped != 1) {
             continue;
         }
 
@@ -360,11 +360,11 @@ void ov76_0223B69C(BallCapsuleSystem *ballCapsuleSys, int param1)
     int i;
 
     for (i = 0; i < SEALS_PER_CAPSULE; i++) {
-        if (ballCapsuleSys->placedSeals[i].unk_00 != 1) {
+        if (ballCapsuleSys->placedSeals[i].tapped != 1) {
             continue;
         }
 
-        ManagedSprite_SetDrawFlag(ballCapsuleSys->placedSeals[i].unk_08, param1);
+        ManagedSprite_SetDrawFlag(ballCapsuleSys->placedSeals[i].sealSprite, param1);
     }
 }
 
@@ -373,11 +373,11 @@ BOOL ov76_0223B6C4(BallCapsuleSystem *ballCapsuleSys, int param1)
     int v0;
     s16 v1, v2;
 
-    if (ballCapsuleSys->placedSeals[param1].unk_00 == 0) {
+    if (ballCapsuleSys->placedSeals[param1].tapped == 0) {
         return 1;
     }
 
-    ManagedSprite_GetPositionXY(ballCapsuleSys->placedSeals[param1].unk_08, &v1, &v2);
+    ManagedSprite_GetPositionXY(ballCapsuleSys->placedSeals[param1].sealSprite, &v1, &v2);
     v0 = ov12_02237E54(v1, v2, 190, 70);
 
     if (v0 > 60) {
@@ -392,19 +392,19 @@ void ov76_0223B704(BallCapsuleSystem *ballCapsuleSys, int param1)
     int v0;
     int v1;
 
-    v0 = sub_02098140(ballCapsuleSys->placedSeals[param1].unk_04);
+    v0 = sub_02098140(ballCapsuleSys->placedSeals[param1].type);
     v1 = (param1 + 20000);
 
     SpriteManager_UnloadCharObjById(ballCapsuleSys->ballCapsuleEditor.spriteMan, v1);
-    Sprite_DeleteAndFreeResources(ballCapsuleSys->placedSeals[param1].unk_08);
+    Sprite_DeleteAndFreeResources(ballCapsuleSys->placedSeals[param1].sealSprite);
 
-    ballCapsuleSys->placedSeals[param1].unk_08 = NULL;
-    ballCapsuleSys->placedSeals[param1].unk_00 = 0;
-    ballCapsuleSys->placedSeals[param1].unk_04 = 0;
-    ballCapsuleSys->placedSeals[param1].unk_05 = 0;
-    ballCapsuleSys->placedSeals[param1].unk_06 = 0;
+    ballCapsuleSys->placedSeals[param1].sealSprite = NULL;
+    ballCapsuleSys->placedSeals[param1].tapped = 0;
+    ballCapsuleSys->placedSeals[param1].type = 0;
+    ballCapsuleSys->placedSeals[param1].x = 0;
+    ballCapsuleSys->placedSeals[param1].y = 0;
 
-    ov76_0223B15C(ballCapsuleSys->placedSeals[param1].unk_0C, 0, 0);
+    ov76_0223B15C(ballCapsuleSys->placedSeals[param1].rect, 0, 0);
 }
 
 void ov76_0223B758(BallCapsuleSystem *ballCapsuleSys, int param1)
@@ -412,9 +412,9 @@ void ov76_0223B758(BallCapsuleSystem *ballCapsuleSys, int param1)
     BOOL v0 = ov76_0223B6C4(ballCapsuleSys, param1);
 
     if (v0 == 0) {
-        ManagedSprite_SetExplicitOamMode(ballCapsuleSys->placedSeals[param1].unk_08, GX_OAM_MODE_XLU);
+        ManagedSprite_SetExplicitOamMode(ballCapsuleSys->placedSeals[param1].sealSprite, GX_OAM_MODE_XLU);
     } else {
-        ManagedSprite_SetExplicitOamMode(ballCapsuleSys->placedSeals[param1].unk_08, GX_OAM_MODE_NORMAL);
+        ManagedSprite_SetExplicitOamMode(ballCapsuleSys->placedSeals[param1].sealSprite, GX_OAM_MODE_NORMAL);
     }
 }
 
@@ -425,12 +425,12 @@ BOOL ov76_0223B78C(BallCapsuleSystem *ballCapsuleSys)
     BallCapsule *v2;
 
     v1 = ballCapsuleSys->selectedCapsules[0];
-    v2 = ballCapsuleSys->capsuleData[v1].unk_04;
+    v2 = ballCapsuleSys->capsuleData[v1].ballCapsule;
 
     for (i = 0; i < SEALS_PER_CAPSULE; i++) {
-        if ((ballCapsuleSys->placedSeals[i].unk_04 != v2->seals[i].type)
-            || (ballCapsuleSys->placedSeals[i].unk_05 != v2->seals[i].x)
-            || (ballCapsuleSys->placedSeals[i].unk_06 != v2->seals[i].y)) {
+        if ((ballCapsuleSys->placedSeals[i].type != v2->seals[i].type)
+            || (ballCapsuleSys->placedSeals[i].x != v2->seals[i].x)
+            || (ballCapsuleSys->placedSeals[i].y != v2->seals[i].y)) {
             return 1;
         }
     }
@@ -442,10 +442,10 @@ void ov76_0223B7D4(BallCapsuleSystem *ballCapsuleSys, int param1)
 {
     s16 v0, v1;
 
-    ManagedSprite_GetPositionXY(ballCapsuleSys->placedSeals[param1].unk_08, &v0, &v1);
+    ManagedSprite_GetPositionXY(ballCapsuleSys->placedSeals[param1].sealSprite, &v0, &v1);
 
-    ballCapsuleSys->placedSeals[param1].unk_05 = (u8)v0;
-    ballCapsuleSys->placedSeals[param1].unk_06 = (u8)v1;
+    ballCapsuleSys->placedSeals[param1].x = (u8)v0;
+    ballCapsuleSys->placedSeals[param1].y = (u8)v1;
 }
 
 void ov76_0223B808(BallCapsuleSystem *ballCapsuleSys)
@@ -454,9 +454,9 @@ void ov76_0223B808(BallCapsuleSystem *ballCapsuleSys)
     BallCapsule capsule;
 
     for (i = 0; i < SEALS_PER_CAPSULE; i++) {
-        capsule.seals[i].type = ballCapsuleSys->placedSeals[i].unk_04;
-        capsule.seals[i].x = ballCapsuleSys->placedSeals[i].unk_05;
-        capsule.seals[i].y = ballCapsuleSys->placedSeals[i].unk_06;
+        capsule.seals[i].type = ballCapsuleSys->placedSeals[i].type;
+        capsule.seals[i].x = ballCapsuleSys->placedSeals[i].x;
+        capsule.seals[i].y = ballCapsuleSys->placedSeals[i].y;
     }
 
     SealCase_CopyCapsuleFromId(ballCapsuleSys->appData->unk_20, &capsule, ballCapsuleSys->selectedCapsules[0]);
@@ -467,8 +467,8 @@ void ov76_0223B848(BallCapsule *ballCapsule, BallCapsuleSystem *ballCapsuleSys)
     int i;
 
     for (i = 0; i < SEALS_PER_CAPSULE; i++) {
-        ballCapsule->seals[i].type = ballCapsuleSys->placedSeals[i].unk_04;
-        ballCapsule->seals[i].x = ballCapsuleSys->placedSeals[i].unk_05;
-        ballCapsule->seals[i].y = ballCapsuleSys->placedSeals[i].unk_06;
+        ballCapsule->seals[i].type = ballCapsuleSys->placedSeals[i].type;
+        ballCapsule->seals[i].x = ballCapsuleSys->placedSeals[i].x;
+        ballCapsule->seals[i].y = ballCapsuleSys->placedSeals[i].y;
     }
 }

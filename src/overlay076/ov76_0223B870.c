@@ -189,12 +189,12 @@ void ov76_0223BA90(BallCapsuleSystem *ballCapsuleSys, int param1)
     v4 *= 8;
 
     for (v0 = 0; v0 < 8; v0++) {
-        ballCapsuleSys->sealCasePages.unk_08[v0] = 0;
+        ballCapsuleSys->sealCasePages.currentPageSeals[v0] = 0;
     }
 
     for (v0 = 0; v0 < (80 + 1); v0++) {
         for (v1 = 0; v1 < 12; v1++) {
-            v5 = SealIsOnCapsule(ballCapsuleSys->capsuleData[v1].unk_04, v0);
+            v5 = SealIsOnCapsule(ballCapsuleSys->capsuleData[v1].ballCapsule, v0);
 
             if (v5) {
                 break;
@@ -210,7 +210,7 @@ void ov76_0223BA90(BallCapsuleSystem *ballCapsuleSys, int param1)
                 continue;
             }
 
-            ballCapsuleSys->sealCasePages.unk_08[v2] = (v0 + 1);
+            ballCapsuleSys->sealCasePages.currentPageSeals[v2] = (v0 + 1);
             v2++;
 
             if (v2 >= 8) {
@@ -229,7 +229,7 @@ void ov76_0223BB04(BallCapsuleSystem *ballCapsuleSys)
     PaletteData *v4 = ballCapsuleSys->ballCapsuleEditor.paletteData;
 
     for (v0 = 0; v0 < 8; v0++) {
-        v1 = sub_02098140(ballCapsuleSys->sealCasePages.unk_08[v0]);
+        v1 = sub_02098140(ballCapsuleSys->sealCasePages.currentPageSeals[v0]);
         SpriteSystem_LoadCharResObj(v2, v3, NARC_INDEX_APPLICATION__CUSTOM_BALL__DATA__CB_DATA, v1, TRUE, NNS_G2D_VRAM_TYPE_2DSUB, v0 + 25000);
     }
 
@@ -265,7 +265,7 @@ void ov76_0223BBAC(BallCapsuleSystem *ballCapsuleSys)
 
     for (v0 = 0; v0 < 8; v0++) {
         v2.resources[0] = (v0 + 25000);
-        v1->unk_00[v0] = SpriteSystem_NewSprite(v3, v4, &v2);
+        v1->sprites[v0] = SpriteSystem_NewSprite(v3, v4, &v2);
     }
 
     {
@@ -281,9 +281,9 @@ void ov76_0223BBAC(BallCapsuleSystem *ballCapsuleSys)
         };
 
         for (v0 = 0; v0 < 8; v0++) {
-            ManagedSprite_SetPositionXY(ballCapsuleSys->editorSprites.unk_00[v0], v6[v0][0], v6[v0][1] - 1);
-            ManagedSprite_TickFrame(ballCapsuleSys->editorSprites.unk_00[v0]);
-            ManagedSprite_SetAnimationFrame(ballCapsuleSys->editorSprites.unk_00[v0], 0);
+            ManagedSprite_SetPositionXY(ballCapsuleSys->editorSprites.sprites[v0], v6[v0][0], v6[v0][1] - 1);
+            ManagedSprite_TickFrame(ballCapsuleSys->editorSprites.sprites[v0]);
+            ManagedSprite_SetAnimationFrame(ballCapsuleSys->editorSprites.sprites[v0], 0);
         }
     }
 }
@@ -294,7 +294,7 @@ void ov76_0223BC70(BallCapsuleSystem *ballCapsuleSys)
 
     for (v0 = 0; v0 < 8; v0++) {
         SpriteManager_UnloadCharObjById(ballCapsuleSys->ballCapsuleEditor.spriteMan, v0 + 25000);
-        Sprite_DeleteAndFreeResources(ballCapsuleSys->editorSprites.unk_00[v0]);
+        Sprite_DeleteAndFreeResources(ballCapsuleSys->editorSprites.sprites[v0]);
     }
 }
 
@@ -339,12 +339,12 @@ void ov76_0223BD30(BallCapsuleSystem *ballCapsuleSys, s8 param1, int param2)
         s16 v2, v3;
 
         for (v1 = 0; v1 < 8; v1++) {
-            if (ballCapsuleSys->placedSeals[v1].unk_00 == 0) {
+            if (ballCapsuleSys->placedSeals[v1].tapped == 0) {
                 v0->unk_144[v1] = NULL;
                 continue;
             }
 
-            v0->unk_144[v1] = ballCapsuleSys->placedSeals[v1].unk_08;
+            v0->unk_144[v1] = ballCapsuleSys->placedSeals[v1].sealSprite;
 
             ManagedSprite_GetPositionXY(v0->unk_144[v1], &v2, &v3);
             PosLerpContext_Init(&v0->unk_00[v1], v2, v2 + ((+7 * 8) * param1), v3, v3 + ((-2 * 8) * param1), param2);
@@ -583,7 +583,7 @@ void ov76_0223C288(BallCapsuleSystem *ballCapsuleSys)
     }
 
     for (v0 = 0; v0 < 12; v0++) {
-        v1 = ballCapsuleSys->capsuleData[v0].unk_00;
+        v1 = ballCapsuleSys->capsuleData[v0].partyIndex;
 
         if (v1 != 0xff) {
             ov76_0223C0EC(v0, &v2, &v3);
@@ -620,11 +620,11 @@ void ov76_0223C354(BallCapsuleSystem *ballCapsuleSys)
     BallCapsule *v3;
 
     for (v0 = 0; v0 < 12; v0++) {
-        v3 = ballCapsuleSys->capsuleData[v0].unk_04;
-        ballCapsuleSys->editData[v0].unk_04 = ov76_0223D430(v3);
-        ballCapsuleSys->editData[v0].unk_00 = ballCapsuleSys->capsuleData[v0].unk_00;
+        v3 = ballCapsuleSys->capsuleData[v0].ballCapsule;
+        ballCapsuleSys->editData[v0].hasSeals = ov76_0223D430(v3);
+        ballCapsuleSys->editData[v0].partyIndex = ballCapsuleSys->capsuleData[v0].partyIndex;
 
-        if ((ballCapsuleSys->editData[v0].unk_04 == 0) && (ballCapsuleSys->editData[v0].unk_00 != 0xff)) {
+        if ((ballCapsuleSys->editData[v0].hasSeals == 0) && (ballCapsuleSys->editData[v0].partyIndex != 0xff)) {
             ov76_0223E91C(ballCapsuleSys, v0);
         }
     }
@@ -768,7 +768,7 @@ void ov76_0223C61C(BallCapsuleSystem *ballCapsuleSys, NARC *param1)
             v1.x = 0;
             v1.y = 0;
             v1.z = 0;
-            v1.animIdx = ballCapsuleSys->editData[v0].unk_04;
+            v1.animIdx = ballCapsuleSys->editData[v0].hasSeals;
             v1.priority = 40 - v0;
             v1.plttIdx = 0;
             v1.vramType = NNS_G2D_VRAM_TYPE_2DMAIN;
@@ -781,12 +781,12 @@ void ov76_0223C61C(BallCapsuleSystem *ballCapsuleSys, NARC *param1)
             v1.resources[4] = SPRITE_RESOURCE_NONE;
             v1.resources[5] = SPRITE_RESOURCE_NONE;
 
-            ballCapsuleSys->editData[v0].unk_08 = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &v1);
+            ballCapsuleSys->editData[v0].sprite = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &v1);
             {
                 s16 v2, v3;
 
                 ov76_0223C0EC(v0, &v2, &v3);
-                ManagedSprite_SetPositionXY(ballCapsuleSys->editData[v0].unk_08, v2, v3);
+                ManagedSprite_SetPositionXY(ballCapsuleSys->editData[v0].sprite, v2, v3);
             }
         }
 
@@ -830,11 +830,11 @@ void ov76_0223C7E0(BallCapsuleSystem *ballCapsuleSys)
     ov76_0223C288(ballCapsuleSys);
 
     for (v0 = 0; v0 < TOTAL_CAPSULES; v0++) {
-        if (ballCapsuleSys->editData[v0].unk_08 == NULL) {
+        if (ballCapsuleSys->editData[v0].sprite == NULL) {
             continue;
         }
 
-        ManagedSprite_SetAnim(ballCapsuleSys->editData[v0].unk_08, ballCapsuleSys->editData[v0].unk_04);
+        ManagedSprite_SetAnim(ballCapsuleSys->editData[v0].sprite, ballCapsuleSys->editData[v0].hasSeals);
     }
 }
 
@@ -847,8 +847,8 @@ void ov76_0223C80C(BallCapsuleSystem *ballCapsuleSys, int param1, int param2)
     int v4;
     BallCapsule v5;
 
-    v1 = ballCapsuleSys->capsuleData[param1].unk_00;
-    v2 = ballCapsuleSys->capsuleData[param2].unk_00;
+    v1 = ballCapsuleSys->capsuleData[param1].partyIndex;
+    v2 = ballCapsuleSys->capsuleData[param2].partyIndex;
 
     if (v1 != 0xff) {
         v3 = param2 + 1;
@@ -860,13 +860,13 @@ void ov76_0223C80C(BallCapsuleSystem *ballCapsuleSys, int param1, int param2)
         Pokemon_SetValue(ballCapsuleSys->appData->unk_04[v2], MON_DATA_BALL_CAPSULE_ID, (u8 *)&v4);
     }
 
-    v0 = ballCapsuleSys->capsuleData[param1].unk_00;
-    ballCapsuleSys->capsuleData[param1].unk_00 = ballCapsuleSys->capsuleData[param2].unk_00;
-    ballCapsuleSys->capsuleData[param2].unk_00 = v0;
+    v0 = ballCapsuleSys->capsuleData[param1].partyIndex;
+    ballCapsuleSys->capsuleData[param1].partyIndex = ballCapsuleSys->capsuleData[param2].partyIndex;
+    ballCapsuleSys->capsuleData[param2].partyIndex = v0;
 
-    BallCapsule_Copy(ballCapsuleSys->capsuleData[param1].unk_04, &v5);
-    BallCapsule_Copy(ballCapsuleSys->capsuleData[param2].unk_04, ballCapsuleSys->capsuleData[param1].unk_04);
-    BallCapsule_Copy(&v5, ballCapsuleSys->capsuleData[param2].unk_04);
+    BallCapsule_Copy(ballCapsuleSys->capsuleData[param1].ballCapsule, &v5);
+    BallCapsule_Copy(ballCapsuleSys->capsuleData[param2].ballCapsule, ballCapsuleSys->capsuleData[param1].ballCapsule);
+    BallCapsule_Copy(&v5, ballCapsuleSys->capsuleData[param2].ballCapsule);
     ov76_0223C7E0(ballCapsuleSys);
 }
 
@@ -875,7 +875,7 @@ void ov76_0223C88C(BallCapsuleSystem *ballCapsuleSys)
     int v0;
 
     for (v0 = 0; v0 < 12; v0++) {
-        ManagedSprite_TickFrame(ballCapsuleSys->editData[v0].unk_08);
+        ManagedSprite_TickFrame(ballCapsuleSys->editData[v0].sprite);
     }
 
     ManagedSprite_TickFrame(ballCapsuleSys->unk_2F4[0]);
@@ -887,7 +887,7 @@ void ov76_0223C8BC(BallCapsuleSystem *ballCapsuleSys)
     int v0;
 
     for (v0 = 0; v0 < 12; v0++) {
-        Sprite_DeleteAndFreeResources(ballCapsuleSys->editData[v0].unk_08);
+        Sprite_DeleteAndFreeResources(ballCapsuleSys->editData[v0].sprite);
     }
 
     Sprite_DeleteAndFreeResources(ballCapsuleSys->unk_2F4[0]);
@@ -976,7 +976,7 @@ void ov76_0223CC8C(BallCapsuleSystem *ballCapsuleSys)
     for (v0 = 3; v0 < 11; v0++) {
         v5 = &ballCapsuleSys->ballCapsuleEditor.unk_18[v0];
         v1 = v0 - 3;
-        v2 = ballCapsuleSys->sealCasePages.unk_08[v1];
+        v2 = ballCapsuleSys->sealCasePages.currentPageSeals[v1];
 
         if (v2 == 0) {
             Window_FillTilemap(v5, 0xEE);
@@ -1005,7 +1005,7 @@ void ov76_0223CD20(BallCapsuleSystem *ballCapsuleSys, int param1)
     String *v4;
     Window *v5 = &ballCapsuleSys->ballCapsuleEditor.unk_18[param1 + 3];
     v1 = param1;
-    v2 = ballCapsuleSys->sealCasePages.unk_08[v1];
+    v2 = ballCapsuleSys->sealCasePages.currentPageSeals[v1];
 
     if (v2 == 0) {
         Window_FillTilemap(v5, 0xEE);
@@ -1167,13 +1167,13 @@ void ov76_0223D16C(BallCapsuleSystem *ballCapsuleSys)
     v2.resources[1] = 26000 + 290;
     v2.resources[2] = 27000 + 177;
     v2.resources[3] = 28000 + 85;
-    v1->unk_00[v0++] = SpriteSystem_NewSprite(v3, v4, &v2);
+    v1->sprites[v0++] = SpriteSystem_NewSprite(v3, v4, &v2);
 
     v2.resources[0] = 25000 + 274;
     v2.resources[1] = 26000 + 290;
     v2.resources[2] = 27000 + 178;
     v2.resources[3] = 28000 + 86;
-    v1->unk_00[v0++] = SpriteSystem_NewSprite(v3, v4, &v2);
+    v1->sprites[v0++] = SpriteSystem_NewSprite(v3, v4, &v2);
 
     v2.bgPriority = 1;
     v2.plttIdx = 1;
@@ -1181,7 +1181,7 @@ void ov76_0223D16C(BallCapsuleSystem *ballCapsuleSys)
     v2.resources[1] = 26000 + 290;
     v2.resources[2] = 27000 + 176;
     v2.resources[3] = 28000 + 84;
-    v1->unk_00[v0++] = SpriteSystem_NewSprite(v3, v4, &v2);
+    v1->sprites[v0++] = SpriteSystem_NewSprite(v3, v4, &v2);
 
     v2.bgPriority = 1;
     v2.plttIdx = 0;
@@ -1189,8 +1189,8 @@ void ov76_0223D16C(BallCapsuleSystem *ballCapsuleSys)
     v2.resources[1] = 26000 + 290;
     v2.resources[2] = 27000 + 175;
     v2.resources[3] = 28000 + 83;
-    v1->unk_00[v0++] = SpriteSystem_NewSprite(v3, v4, &v2);
-    v1->unk_00[v0++] = SpriteSystem_NewSprite(v3, v4, &v2);
+    v1->sprites[v0++] = SpriteSystem_NewSprite(v3, v4, &v2);
+    v1->sprites[v0++] = SpriteSystem_NewSprite(v3, v4, &v2);
 
     {
         const s16 v6[][2] = {
@@ -1225,10 +1225,10 @@ void ov76_0223D16C(BallCapsuleSystem *ballCapsuleSys)
         };
 
         for (v0 = 8; v0 < 13; v0++) {
-            ManagedSprite_SetPositionXY(ballCapsuleSys->editorSprites.unk_00[v0], v6[v0][0], v6[v0][1]);
-            ManagedSprite_TickFrame(ballCapsuleSys->editorSprites.unk_00[v0]);
-            ManagedSprite_SetAnimationFrame(ballCapsuleSys->editorSprites.unk_00[v0], 0);
-            ov76_0223B870(&ballCapsuleSys->ballCapsuleEditor.buttonRects[v0], ballCapsuleSys->editorSprites.unk_00[v0], v7[v0][0], v7[v0][1]);
+            ManagedSprite_SetPositionXY(ballCapsuleSys->editorSprites.sprites[v0], v6[v0][0], v6[v0][1]);
+            ManagedSprite_TickFrame(ballCapsuleSys->editorSprites.sprites[v0]);
+            ManagedSprite_SetAnimationFrame(ballCapsuleSys->editorSprites.sprites[v0], 0);
+            ov76_0223B870(&ballCapsuleSys->ballCapsuleEditor.buttonRects[v0], ballCapsuleSys->editorSprites.sprites[v0], v7[v0][0], v7[v0][1]);
         }
     }
 }
@@ -1238,11 +1238,11 @@ void ov76_0223D2F4(BallCapsuleSystem *ballCapsuleSys, int param1)
     int v0;
 
     for (v0 = 0; v0 < 13; v0++) {
-        if (ballCapsuleSys->editorSprites.unk_00[v0] == NULL) {
+        if (ballCapsuleSys->editorSprites.sprites[v0] == NULL) {
             continue;
         }
 
-        ManagedSprite_SetDrawFlag(ballCapsuleSys->editorSprites.unk_00[v0], param1);
+        ManagedSprite_SetDrawFlag(ballCapsuleSys->editorSprites.sprites[v0], param1);
     }
 }
 
@@ -1260,6 +1260,6 @@ void ov76_0223D31C(BallCapsuleSystem *ballCapsuleSys)
     int v0;
 
     for (v0 = 8; v0 < 13; v0++) {
-        Sprite_DeleteAndFreeResources(ballCapsuleSys->editorSprites.unk_00[v0]);
+        Sprite_DeleteAndFreeResources(ballCapsuleSys->editorSprites.sprites[v0]);
     }
 }

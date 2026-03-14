@@ -94,7 +94,7 @@ static int sub_02097B18(ApplicationManager *appMan, int *param1)
     ballCapsuleSys->narc = NARC_ctor(NARC_INDEX_POKETOOL__POKE_EDIT__PL_POKE_DATA, HEAP_ID_BALL_CAPSULE_SYSTEM);
     ballCapsuleSys->mon = Pokemon_New(HEAP_ID_BALL_CAPSULE_SYSTEM);
     ballCapsuleSys->ballCapsuleEditor.unk_00 = 0xFF;
-    ballCapsuleSys->sealCasePages.unk_00 = 0;
+    ballCapsuleSys->sealCasePages.currentPage = 0;
 
     {
         int v2 = 0;
@@ -106,11 +106,11 @@ static int sub_02097B18(ApplicationManager *appMan, int *param1)
             v2 = 1;
         }
 
-        ballCapsuleSys->sealCasePages.unk_04 = (SealCase_CountUniqueSeals(ballCapsuleSys->appData->unk_20) / 8) + v2;
+        ballCapsuleSys->sealCasePages.totalPages = (SealCase_CountUniqueSeals(ballCapsuleSys->appData->unk_20) / 8) + v2;
     }
 
-    if (ballCapsuleSys->sealCasePages.unk_04 > (SEAL_ID_MAX / 8)) {
-        ballCapsuleSys->sealCasePages.unk_04 = (SEAL_ID_MAX / 8);
+    if (ballCapsuleSys->sealCasePages.totalPages > (SEAL_ID_MAX / 8)) {
+        ballCapsuleSys->sealCasePages.totalPages = (SEAL_ID_MAX / 8);
     }
 
     ballCapsuleSys->selectedCapsules[0] = sub_02097F18(ballCapsuleSys->appData);
@@ -125,8 +125,8 @@ static int sub_02097B18(ApplicationManager *appMan, int *param1)
 
         for (i = 0; i < TOTAL_CAPSULES; i++) {
             capsule = SealCase_GetCapsuleById(ballCapsuleSys->appData->unk_20, i);
-            ballCapsuleSys->capsuleData[i].unk_00 = 0xff;
-            ballCapsuleSys->capsuleData[i].unk_04 = capsule;
+            ballCapsuleSys->capsuleData[i].partyIndex = 0xff;
+            ballCapsuleSys->capsuleData[i].ballCapsule = capsule;
         }
 
         for (i = 0; i < 6; i++) {
@@ -137,7 +137,7 @@ static int sub_02097B18(ApplicationManager *appMan, int *param1)
             capsuleId = Pokemon_GetValue(ballCapsuleSys->appData->unk_04[i], MON_DATA_BALL_CAPSULE_ID, 0);
 
             if (capsuleId != 0) {
-                ballCapsuleSys->capsuleData[capsuleId - 1].unk_00 = i;
+                ballCapsuleSys->capsuleData[capsuleId - 1].partyIndex = i;
             }
         }
     }
