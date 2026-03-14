@@ -83,7 +83,7 @@ static int sub_02097B18(ApplicationManager *appMan, int *param1)
 
     Heap_Create(HEAP_ID_APPLICATION, HEAP_ID_BALL_CAPSULE_SYSTEM, 0x80000);
     ov76_0223EB20(HEAP_ID_BALL_CAPSULE_SYSTEM);
-    ov76_0223D3A0();
+    BallCapsuleSystem_SetDefaultBlend();
 
     ballCapsuleSys = ApplicationManager_NewData(appMan, sizeof(BallCapsuleSystem), HEAP_ID_BALL_CAPSULE_SYSTEM);
     memset(ballCapsuleSys, 0, sizeof(BallCapsuleSystem));

@@ -59,17 +59,17 @@ static BOOL ov76_0223E950(BallCapsuleSystem *ballCapsuleSys);
 static BOOL ov76_0223E9C4(BallCapsuleSystem *ballCapsuleSys);
 static BOOL ov76_0223EB1C(BallCapsuleSystem *ballCapsuleSys);
 
-void ov76_0223D338(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_SaveCapsuleToSelectedSlot(BallCapsuleSystem *ballCapsuleSys)
 {
     BallCapsule_Copy(ballCapsuleSys->capsuleData[ballCapsuleSys->selectedCapsules[0]].ballCapsule, &ballCapsuleSys->selectedCapsule);
 }
 
-void ov76_0223D350(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_LoadSelectedCapsule(BallCapsuleSystem *ballCapsuleSys)
 {
     BallCapsule_Copy(&ballCapsuleSys->selectedCapsule, ballCapsuleSys->capsuleData[ballCapsuleSys->selectedCapsules[0]].ballCapsule);
 }
 
-void ov76_0223D368(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_LoadSealCounts(BallCapsuleSystem *ballCapsuleSys)
 {
     int v0;
 
@@ -78,7 +78,7 @@ void ov76_0223D368(BallCapsuleSystem *ballCapsuleSys)
     }
 }
 
-void ov76_0223D384(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_SetSealCounts(BallCapsuleSystem *ballCapsuleSys)
 {
     int i;
 
@@ -87,13 +87,13 @@ void ov76_0223D384(BallCapsuleSystem *ballCapsuleSys)
     }
 }
 
-void ov76_0223D3A0(void)
+void BallCapsuleSystem_SetDefaultBlend(void)
 {
     G2_SetBlendAlpha(GX_BLEND_PLANEMASK_NONE, GX_BLEND_PLANEMASK_BG1 | GX_BLEND_PLANEMASK_BG2, 11, 7);
     G2S_SetBlendAlpha(GX_BLEND_PLANEMASK_NONE, GX_BLEND_PLANEMASK_BG1 | GX_BLEND_PLANEMASK_BG2 | GX_BLEND_PLANEMASK_BG3, 7, 8);
 }
 
-void ov76_0223D3CC(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_LoadFirstPokemon(BallCapsuleSystem *ballCapsuleSys)
 {
     int v0;
     int v1;
@@ -119,7 +119,7 @@ void ov76_0223D3CC(BallCapsuleSystem *ballCapsuleSys)
     }
 }
 
-int ov76_0223D430(BallCapsule *param0)
+int BallCapsule_ContainsSeals(BallCapsule *param0)
 {
     int v0;
     int v1 = 0;
@@ -285,12 +285,12 @@ static void ov76_0223D600(BallCapsuleSystem *ballCapsuleSys, int param1, BOOL pa
         v2 = 1;
     }
 
-    ov76_0223C0EC(ballCapsuleSys->selectedCapsules[param1], &v0, &v1);
+    GetCapsulePosition(ballCapsuleSys->selectedCapsules[param1], &v0, &v1);
     ManagedSprite_SetPositionXY(ballCapsuleSys->unk_2F4[param1], v0, v1);
 
     if (param2 == 1) {
         ballCapsuleSys->selectedCapsules[v2] = ballCapsuleSys->selectedCapsules[param1];
-        ov76_0223C0EC(ballCapsuleSys->selectedCapsules[v2], &v0, &v1);
+        GetCapsulePosition(ballCapsuleSys->selectedCapsules[v2], &v0, &v1);
         ManagedSprite_SetPositionXY(ballCapsuleSys->unk_2F4[v2], v0, v1);
     }
 }
@@ -304,14 +304,14 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
         v0 = NARC_ctor(NARC_INDEX_APPLICATION__CUSTOM_BALL__DATA__CB_DATA, HEAP_ID_BALL_CAPSULE_SYSTEM);
 
         ov76_0223C110(ballCapsuleSys);
-        ov76_0223C188(ballCapsuleSys);
+        BallCapsuleSystem_LoadPartyIcons(ballCapsuleSys);
         ov76_0223C288(ballCapsuleSys);
         ov76_0223CE84(ballCapsuleSys, v0);
         ov76_0223CF24(ballCapsuleSys, v0);
         ov76_0223CF88(ballCapsuleSys, v0);
         ov76_0223C354(ballCapsuleSys);
         ov76_0223C61C(ballCapsuleSys, v0);
-        ov76_0223CA98(ballCapsuleSys->ballCapsuleEditor.bgConfig, &ballCapsuleSys->ballCapsuleEditor.unk_18[0], 1, 2, 21, 27, 2, 0 + ((1 + (18 + 12)) + 9));
+        CreateBasicWindow(ballCapsuleSys->ballCapsuleEditor.bgConfig, &ballCapsuleSys->ballCapsuleEditor.unk_18[0], 1, 2, 21, 27, 2, 0 + ((1 + (18 + 12)) + 9));
         ov76_0223B208(ballCapsuleSys);
         ov76_0223B69C(ballCapsuleSys, 1);
         ov76_0223B1E0(ballCapsuleSys);
@@ -319,16 +319,16 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
         ov76_0223D16C(ballCapsuleSys);
         ov76_0223C438(ballCapsuleSys, v0);
         ov76_0223C4AC(ballCapsuleSys);
-        ov76_0223D338(ballCapsuleSys);
-        ov76_0223D368(ballCapsuleSys);
-        ov76_0223BA90(ballCapsuleSys, ballCapsuleSys->sealCasePages.currentPage);
+        BallCapsuleSystem_SaveCapsuleToSelectedSlot(ballCapsuleSys);
+        BallCapsuleSystem_LoadSealCounts(ballCapsuleSys);
+        BallCapsuleSystem_LoadCurrentPageSeals(ballCapsuleSys, ballCapsuleSys->sealCasePages.currentPage);
         ov76_0223BB04(ballCapsuleSys);
         ov76_0223BBAC(ballCapsuleSys);
         ov76_0223D2F4(ballCapsuleSys, 0);
         ov76_0223C568(ballCapsuleSys, 0);
         ov76_0223B940(ballCapsuleSys);
         ov76_0223B96C(ballCapsuleSys, 0);
-        ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 7);
+        Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 7);
         ov76_0223CE2C();
         ov76_0223DCB8(ballCapsuleSys, 0);
 
@@ -380,7 +380,7 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
             Sound_PlayEffect(SEQ_SE_CONFIRM);
         } else if (gSystem.pressedKeys & PAD_BUTTON_A) {
             ballCapsuleSys->unk_3D4++;
-            ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 8);
+            Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 8);
             ov76_0223BF74(ballCapsuleSys->ballCapsuleEditor.bgConfig, &ballCapsuleSys->ballCapsuleEditor.unk_18[1], 1, ballCapsuleSys, ballCapsuleSys->selectedCapsules[0]);
             Sound_PlayEffect(SEQ_SE_CONFIRM);
         } else if (gSystem.pressedKeys & PAD_BUTTON_B) {
@@ -395,7 +395,7 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
         switch (v5) {
         case 0xfffffffe:
             ov76_0223D4C4(ballCapsuleSys);
-            ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 7);
+            Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 7);
             ballCapsuleSys->unk_3D4 = 3;
             break;
         case 0xffffffff:
@@ -411,7 +411,7 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
                     break;
                 }
 
-                ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 7);
+                Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 7);
                 ballCapsuleSys->unk_3D4 = 3;
             }
             break;
@@ -427,15 +427,15 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
         }
         Window_Remove(&ballCapsuleSys->ballCapsuleEditor.unk_18[0]);
         ov76_0223C8BC(ballCapsuleSys);
-        ov76_0223C32C(ballCapsuleSys);
+        BallCapsuleSystem_DeletePartyIcons(ballCapsuleSys);
         ov76_0223D31C(ballCapsuleSys);
         ov76_0223C588(ballCapsuleSys);
-        ov76_0223BC70(ballCapsuleSys);
+        BallCapsuleSystem_UnloadEditorSprites(ballCapsuleSys);
         sub_02097F30(ballCapsuleSys->appData, 0);
         return 0;
     }
 
-    ov76_0223C304(ballCapsuleSys);
+    BallCapsuleSystem_UpdatePartyIcons(ballCapsuleSys);
     ov76_0223C88C(ballCapsuleSys);
 
     return 1;
@@ -522,8 +522,8 @@ void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
                 ballCapsuleSys->sealCasePages.currentPage = ballCapsuleSys->sealCasePages.totalPages - 1;
             }
 
-            ov76_0223BC70(ballCapsuleSys);
-            ov76_0223BA90(ballCapsuleSys, ballCapsuleSys->sealCasePages.currentPage);
+            BallCapsuleSystem_UnloadEditorSprites(ballCapsuleSys);
+            BallCapsuleSystem_LoadCurrentPageSeals(ballCapsuleSys, ballCapsuleSys->sealCasePages.currentPage);
             ov76_0223BB04(ballCapsuleSys);
             ov76_0223BBAC(ballCapsuleSys);
             ov76_0223CC8C(ballCapsuleSys);
@@ -537,8 +537,8 @@ void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
             ballCapsuleSys->sealCasePages.currentPage++;
             ballCapsuleSys->sealCasePages.currentPage %= ballCapsuleSys->sealCasePages.totalPages;
 
-            ov76_0223BC70(ballCapsuleSys);
-            ov76_0223BA90(ballCapsuleSys, ballCapsuleSys->sealCasePages.currentPage);
+            BallCapsuleSystem_UnloadEditorSprites(ballCapsuleSys);
+            BallCapsuleSystem_LoadCurrentPageSeals(ballCapsuleSys, ballCapsuleSys->sealCasePages.currentPage);
             ov76_0223BB04(ballCapsuleSys);
             ov76_0223BBAC(ballCapsuleSys);
             ov76_0223CC8C(ballCapsuleSys);
@@ -597,7 +597,7 @@ void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
         if (param1 == TOUCH_BUTTON_PRESSED) {
             if (ov76_0223B2F8(ballCapsuleSys) == 0) {
                 Sound_PlayEffect(SEQ_SE_DP_CUSTOM06);
-                ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 15);
+                Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 15);
             } else {
                 if ((ballCapsuleSys->sealCasePages.currentPageSeals[param0] != 0) && (SealCase_GetSealCount(ballCapsuleSys->sealCounts, ballCapsuleSys->sealCasePages.currentPageSeals[param0] - 1) != 0)) {
                     ballCapsuleSys->ballCapsuleEditor.unk_00 = ov76_0223B278(ballCapsuleSys, param0);
@@ -610,7 +610,7 @@ void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
                 } else {
                     if (ballCapsuleSys->sealCasePages.currentPageSeals[param0] != 0) {
                         Sound_PlayEffect(SEQ_SE_DP_CUSTOM06);
-                        ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 16);
+                        Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 16);
                     }
                 }
             }
@@ -685,7 +685,7 @@ void ov76_0223DCC0(BallCapsuleSystem *ballCapsuleSys)
     ballCapsuleSys->ballCapsuleEditor.unk_F8 = TouchScreenActions_RegisterHandler(ballCapsuleSys->ballCapsuleEditor.buttonRects, 21, ov76_0223DA34, ballCapsuleSys, HEAP_ID_BALL_CAPSULE_SYSTEM);
 }
 
-void ov76_0223DD88(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_InitializeButtons(BallCapsuleSystem *ballCapsuleSys)
 {
     PokemonSpriteTemplate v0;
     SpriteAnimFrame v1[10];
@@ -702,7 +702,7 @@ void ov76_0223DD88(BallCapsuleSystem *ballCapsuleSys)
     ballCapsuleSys->ballCapsuleEditor.monSprite = PokemonSpriteManager_CreateSprite(ballCapsuleSys->ballCapsuleEditor.monSpriteMan, &v0, 256 - 64, 48 + v3, -0x280, 0, &v1[0], NULL);
 }
 
-static void ov76_0223DE00(BallCapsuleSystem *ballCapsuleSys)
+static void BallCapsuleSystem_LoadPokemonSprite(BallCapsuleSystem *ballCapsuleSys)
 {
     int v0;
     int v1;
@@ -754,12 +754,12 @@ static BOOL ov76_0223DEF4(BallCapsuleSystem *ballCapsuleSys)
     return 1;
 }
 
-void ov76_0223DF70(BallCapsuleSystem *ballCapsuleSys, int param1)
+void BallCapsuleSystem_LoadPokemonAnim(BallCapsuleSystem *ballCapsuleSys, int param1)
 {
     PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_HIDE, param1);
 }
 
-void ov76_0223DF84(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_DeletePokemonSprite(BallCapsuleSystem *ballCapsuleSys)
 {
     PokemonSprite_Delete(ballCapsuleSys->ballCapsuleEditor.monSprite);
 }
@@ -769,12 +769,12 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
     switch (ballCapsuleSys->unk_3D4) {
     case 0:
         ov76_0223DCB8(ballCapsuleSys, 0);
-        ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 0xFFFF);
+        Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 0xFFFF);
         ov76_0223CB58(ballCapsuleSys);
         ov76_0223CC8C(ballCapsuleSys);
         ov76_0223BD30(ballCapsuleSys, +1, 4);
-        ov76_0223D338(ballCapsuleSys);
-        ov76_0223D368(ballCapsuleSys);
+        BallCapsuleSystem_SaveCapsuleToSelectedSlot(ballCapsuleSys);
+        BallCapsuleSystem_LoadSealCounts(ballCapsuleSys);
         ballCapsuleSys->ballCapsuleEditor.unk_18C = 0;
         ballCapsuleSys->unk_3D4++;
         break;
@@ -818,10 +818,10 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x8, 0xFFFF, 0, 0, 10, 0);
             ov76_0223DCB8(ballCapsuleSys, 0);
             ballCapsuleSys->unk_3E0 = 0;
-            ov76_0223D3CC(ballCapsuleSys);
-            ov76_0223DD88(ballCapsuleSys);
-            ov76_0223DF70(ballCapsuleSys, 1);
-            ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 13);
+            BallCapsuleSystem_LoadFirstPokemon(ballCapsuleSys);
+            BallCapsuleSystem_InitializeButtons(ballCapsuleSys);
+            BallCapsuleSystem_LoadPokemonAnim(ballCapsuleSys, 1);
+            Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 13);
             ballCapsuleSys->unk_3DC++;
             break;
         case 1:
@@ -873,7 +873,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             if (ov12_02237810(ballCapsuleSys->ballCapsuleEditor.ballRotation) == 1) {
                 ov76_0223DE78(ballCapsuleSys);
                 ov12_022363B4(ballCapsuleSys->ballCapsuleEditor.unk_154);
-                ov76_0223DF70(ballCapsuleSys, 0);
+                BallCapsuleSystem_LoadPokemonAnim(ballCapsuleSys, 0);
                 ov76_0223DE54(ballCapsuleSys);
                 Sound_PlayEffect(SEQ_SE_DP_CUSTOM05);
                 ballCapsuleSys->unk_3DC++;
@@ -889,7 +889,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             if (v4 == 0) {
                 ov12_0223783C(ballCapsuleSys->ballCapsuleEditor.ballRotation);
                 GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 0);
-                ov76_0223DE00(ballCapsuleSys);
+                BallCapsuleSystem_LoadPokemonSprite(ballCapsuleSys);
                 ballCapsuleSys->unk_3E0 = 0;
                 ballCapsuleSys->unk_3DC++;
             }
@@ -931,7 +931,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
 
                 ballCapsuleSys->ballCapsuleEditor.ballRotation = ov12_02237728(&v5);
 
-                ov76_0223D3A0();
+                BallCapsuleSystem_SetDefaultBlend();
                 GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 1);
 
                 ballCapsuleSys->unk_3DC++;
@@ -943,8 +943,8 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             if ((ov12_022377F8(ballCapsuleSys->ballCapsuleEditor.ballRotation) == 0) && (v6 == 0)) {
                 PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 10, 0, 0);
                 PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x8, 0xFFFF, 0, 10, 0, 0);
-                ov76_0223DF70(ballCapsuleSys, 1);
-                ov76_0223DF84(ballCapsuleSys);
+                BallCapsuleSystem_LoadPokemonAnim(ballCapsuleSys, 1);
+                BallCapsuleSystem_DeletePokemonSprite(ballCapsuleSys);
                 ov12_0223783C(ballCapsuleSys->ballCapsuleEditor.ballRotation);
                 ballCapsuleSys->unk_3DC++;
             }
@@ -958,12 +958,12 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             ov76_0223DCB8(ballCapsuleSys, 1);
             ballCapsuleSys->unk_3DC = 0;
             ballCapsuleSys->unk_3D4 = 4;
-            ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 0xFFFF);
+            Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 0xFFFF);
             break;
         }
     } break;
     case 6:
-        ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 12);
+        Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 12);
 
         if (ov76_0223B78C(ballCapsuleSys) == 1) {
             ballCapsuleSys->ballCapsuleEditor.unk_18C = 1;
@@ -1009,7 +1009,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             }
 
             PaletteData_SetAutoTransparent(ballCapsuleSys->ballCapsuleEditor.paletteData, 0);
-            ov76_0223CA98(ballCapsuleSys->ballCapsuleEditor.bgConfig, &ballCapsuleSys->ballCapsuleEditor.unk_18[2], 4, 2, 1, 27, 4, 0 + ((1 + (18 + 12)) + 9));
+            CreateBasicWindow(ballCapsuleSys->ballCapsuleEditor.bgConfig, &ballCapsuleSys->ballCapsuleEditor.unk_18[2], 4, 2, 1, 27, 4, 0 + ((1 + (18 + 12)) + 9));
 
             {
                 UnkStruct_02015958 v9;
@@ -1025,7 +1025,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
                 sub_02015958(ballCapsuleSys->ballCapsuleEditor.unk_150, &v9);
             }
 
-            ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[2], 14);
+            Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[2], 14);
             ballCapsuleSys->unk_3DC++;
             break;
         case 2:
@@ -1064,8 +1064,8 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
 
             switch (ballCapsuleSys->unk_3E0) {
             case 1:
-                ov76_0223D350(ballCapsuleSys);
-                ov76_0223D384(ballCapsuleSys);
+                BallCapsuleSystem_LoadSelectedCapsule(ballCapsuleSys);
+                BallCapsuleSystem_SetSealCounts(ballCapsuleSys);
                 ov76_0223CC8C(ballCapsuleSys);
                 ov76_0223B678(ballCapsuleSys);
                 ov76_0223B208(ballCapsuleSys);
@@ -1118,7 +1118,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
 
         ManagedSprite_SetDrawFlag(ballCapsuleSys->unk_2F4[1], 0);
         ov76_0223D494(ballCapsuleSys, 0, 0xff, 0);
-        ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 7);
+        Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 7);
         ov76_0223CDA4(ballCapsuleSys);
 
         return 1;
@@ -1162,7 +1162,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
 
     ov76_0223D318(ballCapsuleSys);
     ov76_0223C544(ballCapsuleSys);
-    ov76_0223C304(ballCapsuleSys);
+    BallCapsuleSystem_UpdatePartyIcons(ballCapsuleSys);
     ov76_0223C88C(ballCapsuleSys);
 
     return 1;
@@ -1184,22 +1184,22 @@ static BOOL ov76_0223E8A4(BallCapsuleSystem *ballCapsuleSys)
 
         Window_Remove(&ballCapsuleSys->ballCapsuleEditor.unk_18[0]);
         ov76_0223C8BC(ballCapsuleSys);
-        ov76_0223C32C(ballCapsuleSys);
+        BallCapsuleSystem_DeletePartyIcons(ballCapsuleSys);
         ov76_0223D31C(ballCapsuleSys);
         ov76_0223C588(ballCapsuleSys);
-        ov76_0223BC70(ballCapsuleSys);
+        BallCapsuleSystem_UnloadEditorSprites(ballCapsuleSys);
         sub_02097F30(ballCapsuleSys->appData, 1);
 
         return 0;
     }
 
-    ov76_0223C304(ballCapsuleSys);
+    BallCapsuleSystem_UpdatePartyIcons(ballCapsuleSys);
     ov76_0223C88C(ballCapsuleSys);
 
     return 1;
 }
 
-void ov76_0223E91C(BallCapsuleSystem *ballCapsuleSys, int param1)
+void BallCapsuleSystem_UnsetCapsule(BallCapsuleSystem *ballCapsuleSys, int param1)
 {
     int v0;
     int v1;
@@ -1220,8 +1220,8 @@ static BOOL ov76_0223E950(BallCapsuleSystem *ballCapsuleSys)
 {
     switch (ballCapsuleSys->unk_3D4) {
     case 0:
-        ov76_0223E91C(ballCapsuleSys, ballCapsuleSys->selectedCapsules[0]);
-        ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 9);
+        BallCapsuleSystem_UnsetCapsule(ballCapsuleSys, ballCapsuleSys->selectedCapsules[0]);
+        Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 9);
         ballCapsuleSys->unk_3D4++;
         break;
     case 1:
@@ -1231,11 +1231,11 @@ static BOOL ov76_0223E950(BallCapsuleSystem *ballCapsuleSys)
         break;
     case 2:
         ov76_0223D494(ballCapsuleSys, 0, 0xff, 0);
-        ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 7);
+        Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 7);
         break;
     }
 
-    ov76_0223C304(ballCapsuleSys);
+    BallCapsuleSystem_UpdatePartyIcons(ballCapsuleSys);
     ov76_0223C88C(ballCapsuleSys);
 
     return 1;
@@ -1248,7 +1248,7 @@ static BOOL ov76_0223E9C4(BallCapsuleSystem *ballCapsuleSys)
         ManagedSprite_SetPriority(ballCapsuleSys->unk_2F4[0], 25);
         ManagedSprite_SetPriority(ballCapsuleSys->unk_2F4[1], 20);
         ManagedSprite_SetAnim(ballCapsuleSys->unk_2F4[0], 1);
-        ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 10);
+        Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 10);
         ManagedSprite_SetDrawFlag(ballCapsuleSys->unk_2F4[1], 1);
         ballCapsuleSys->unk_3D4++;
     case 1: {
@@ -1261,9 +1261,9 @@ static BOOL ov76_0223E9C4(BallCapsuleSystem *ballCapsuleSys)
 
             Sound_PlayEffect(SEQ_SE_CONFIRM);
         } else if (gSystem.pressedKeys & PAD_BUTTON_A) {
-            ov76_0223C80C(ballCapsuleSys, ballCapsuleSys->selectedCapsules[0], ballCapsuleSys->selectedCapsules[1]);
+            BallCapsuleSys_SwapCapsules(ballCapsuleSys, ballCapsuleSys->selectedCapsules[0], ballCapsuleSys->selectedCapsules[1]);
             ov76_0223D600(ballCapsuleSys, 1, 1);
-            ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 11);
+            Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 11);
             ballCapsuleSys->unk_3D4 = 2;
             Sound_PlayEffect(SEQ_SE_CONFIRM);
         } else if (gSystem.pressedKeys & PAD_BUTTON_B) {
@@ -1283,11 +1283,11 @@ static BOOL ov76_0223E9C4(BallCapsuleSystem *ballCapsuleSys)
         ManagedSprite_SetPriority(ballCapsuleSys->unk_2F4[1], 25);
         ov76_0223D494(ballCapsuleSys, 0, 0xff, 0);
         ManagedSprite_SetAnim(ballCapsuleSys->unk_2F4[0], 0);
-        ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 7);
+        Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 7);
         break;
     }
 
-    ov76_0223C304(ballCapsuleSys);
+    BallCapsuleSystem_UpdatePartyIcons(ballCapsuleSys);
     ov76_0223C88C(ballCapsuleSys);
 
     return 1;
