@@ -182,7 +182,7 @@ static int ov76_0223D4C4(BallCapsuleSystem *ballCapsuleSys)
 {
     Window_EraseStandardFrame(&ballCapsuleSys->ballCapsuleEditor.unk_18[1], 1);
     Window_ClearAndCopyToVRAM(&ballCapsuleSys->ballCapsuleEditor.unk_18[1]);
-    Menu_Free(ballCapsuleSys->ballCapsuleEditor.unk_CC, NULL);
+    Menu_Free(ballCapsuleSys->ballCapsuleEditor.menu, NULL);
     StringList_Free(ballCapsuleSys->ballCapsuleEditor.unk_C8);
     Window_Remove(&ballCapsuleSys->ballCapsuleEditor.unk_18[1]);
 
@@ -237,7 +237,7 @@ static BOOL (*const Unk_ov76_0223EE04[])(BallCapsuleSystem *cbmw) = {
 BOOL ov76_0223D550(BallCapsuleSystem *ballCapsuleSys)
 {
     BOOL v0 = Unk_ov76_0223EE04[ballCapsuleSys->unk_3CC](ballCapsuleSys);
-    SpriteSystem_DrawSprites(ballCapsuleSys->ballCapsuleEditor.unk_0C);
+    SpriteSystem_DrawSprites(ballCapsuleSys->ballCapsuleEditor.spriteMan);
 
     return v0;
 }
@@ -301,7 +301,7 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
     case 0: {
         NARC *v0;
 
-        v0 = NARC_ctor(NARC_INDEX_APPLICATION__CUSTOM_BALL__DATA__CB_DATA, HEAP_ID_53);
+        v0 = NARC_ctor(NARC_INDEX_APPLICATION__CUSTOM_BALL__DATA__CB_DATA, HEAP_ID_BALL_CAPSULE_SYSTEM);
 
         ov76_0223C110(ballCapsuleSys);
         ov76_0223C188(ballCapsuleSys);
@@ -311,7 +311,7 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
         ov76_0223CF88(ballCapsuleSys, v0);
         ov76_0223C354(ballCapsuleSys);
         ov76_0223C61C(ballCapsuleSys, v0);
-        ov76_0223CA98(ballCapsuleSys->ballCapsuleEditor.unk_10, &ballCapsuleSys->ballCapsuleEditor.unk_18[0], 1, 2, 21, 27, 2, 0 + ((1 + (18 + 12)) + 9));
+        ov76_0223CA98(ballCapsuleSys->ballCapsuleEditor.bgConfig, &ballCapsuleSys->ballCapsuleEditor.unk_18[0], 1, 2, 21, 27, 2, 0 + ((1 + (18 + 12)) + 9));
         ov76_0223B208(ballCapsuleSys);
         ov76_0223B69C(ballCapsuleSys, 1);
         ov76_0223B1E0(ballCapsuleSys);
@@ -381,7 +381,7 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
         } else if (gSystem.pressedKeys & PAD_BUTTON_A) {
             ballCapsuleSys->unk_3D4++;
             ov76_0223CA30(&ballCapsuleSys->ballCapsuleEditor.unk_18[0], 8);
-            ov76_0223BF74(ballCapsuleSys->ballCapsuleEditor.unk_10, &ballCapsuleSys->ballCapsuleEditor.unk_18[1], 1, ballCapsuleSys, ballCapsuleSys->selectedCapsules[0]);
+            ov76_0223BF74(ballCapsuleSys->ballCapsuleEditor.bgConfig, &ballCapsuleSys->ballCapsuleEditor.unk_18[1], 1, ballCapsuleSys, ballCapsuleSys->selectedCapsules[0]);
             Sound_PlayEffect(SEQ_SE_CONFIRM);
         } else if (gSystem.pressedKeys & PAD_BUTTON_B) {
             ballCapsuleSys->unk_3D4 = 5;
@@ -390,7 +390,7 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
     } break;
     case 4: {
         UnkFuncPtr_ov76_0223D674 v4;
-        u32 v5 = Menu_ProcessInput(ballCapsuleSys->ballCapsuleEditor.unk_CC);
+        u32 v5 = Menu_ProcessInput(ballCapsuleSys->ballCapsuleEditor.menu);
 
         switch (v5) {
         case 0xfffffffe:
@@ -495,7 +495,7 @@ static void ov76_0223D9AC(SysTask *param0, void *param1)
 
 static void ov76_0223DA00(ManagedSprite *param0, FontOAM *param1)
 {
-    UnkStruct_ov76_0223D9AC *v0 = Heap_Alloc(HEAP_ID_53, sizeof(UnkStruct_ov76_0223D9AC));
+    UnkStruct_ov76_0223D9AC *v0 = Heap_Alloc(HEAP_ID_BALL_CAPSULE_SYSTEM, sizeof(UnkStruct_ov76_0223D9AC));
 
     v0->unk_00 = 1;
     v0->unk_04 = param0;
@@ -674,15 +674,15 @@ void ov76_0223DCC0(BallCapsuleSystem *ballCapsuleSys)
     const TouchScreenRect v1 = { 0, 0, 0, 0 };
 
     for (v0 = 0; v0 < 13; v0++) {
-        ballCapsuleSys->ballCapsuleEditor.unk_FC[v0] = Unk_ov76_0223EE44[v0];
+        ballCapsuleSys->ballCapsuleEditor.buttonRects[v0] = Unk_ov76_0223EE44[v0];
     }
 
     for (; v0 < 21; v0++) {
-        ballCapsuleSys->ballCapsuleEditor.unk_FC[v0] = v1;
-        ballCapsuleSys->placedSeals[v0 - 13].unk_0C = &ballCapsuleSys->ballCapsuleEditor.unk_FC[v0];
+        ballCapsuleSys->ballCapsuleEditor.buttonRects[v0] = v1;
+        ballCapsuleSys->placedSeals[v0 - 13].unk_0C = &ballCapsuleSys->ballCapsuleEditor.buttonRects[v0];
     }
 
-    ballCapsuleSys->ballCapsuleEditor.unk_F8 = TouchScreenActions_RegisterHandler(ballCapsuleSys->ballCapsuleEditor.unk_FC, 21, ov76_0223DA34, ballCapsuleSys, HEAP_ID_53);
+    ballCapsuleSys->ballCapsuleEditor.unk_F8 = TouchScreenActions_RegisterHandler(ballCapsuleSys->ballCapsuleEditor.buttonRects, 21, ov76_0223DA34, ballCapsuleSys, HEAP_ID_BALL_CAPSULE_SYSTEM);
 }
 
 void ov76_0223DD88(BallCapsuleSystem *ballCapsuleSys)
@@ -697,9 +697,9 @@ void ov76_0223DD88(BallCapsuleSystem *ballCapsuleSys)
     v2 = Pokemon_GetValue(ballCapsuleSys->mon, MON_DATA_SPECIES, NULL);
     v3 = Pokemon_SpriteYOffset(ballCapsuleSys->mon, 2);
 
-    ballCapsuleSys->ballCapsuleEditor.unk_D8 = v3;
+    ballCapsuleSys->ballCapsuleEditor.yOffset = v3;
     PokemonSprite_LoadAnimFrames(ballCapsuleSys->narc, &v1[0], v2, 1);
-    ballCapsuleSys->ballCapsuleEditor.unk_D4 = PokemonSpriteManager_CreateSprite(ballCapsuleSys->ballCapsuleEditor.unk_D0, &v0, 256 - 64, 48 + v3, -0x280, 0, &v1[0], NULL);
+    ballCapsuleSys->ballCapsuleEditor.monSprite = PokemonSpriteManager_CreateSprite(ballCapsuleSys->ballCapsuleEditor.monSpriteMan, &v0, 256 - 64, 48 + v3, -0x280, 0, &v1[0], NULL);
 }
 
 static void ov76_0223DE00(BallCapsuleSystem *ballCapsuleSys)
@@ -710,28 +710,28 @@ static void ov76_0223DE00(BallCapsuleSystem *ballCapsuleSys)
     v0 = Pokemon_GetValue(ballCapsuleSys->mon, MON_DATA_SPECIES, NULL);
     v1 = Pokemon_GetNature(ballCapsuleSys->mon);
 
-    PokemonSprite_InitAnim(ballCapsuleSys->ballCapsuleEditor.unk_D4, 1);
-    PokemonSprite_LoadAnim(ballCapsuleSys->narc, ballCapsuleSys->ballCapsuleEditor.unk_188, ballCapsuleSys->ballCapsuleEditor.unk_D4, v0, 2, 0, 0);
+    PokemonSprite_InitAnim(ballCapsuleSys->ballCapsuleEditor.monSprite, 1);
+    PokemonSprite_LoadAnim(ballCapsuleSys->narc, ballCapsuleSys->ballCapsuleEditor.unk_188, ballCapsuleSys->ballCapsuleEditor.monSprite, v0, 2, 0, 0);
 }
 
 static void ov76_0223DE54(BallCapsuleSystem *ballCapsuleSys)
 {
-    PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.unk_D4, MON_SPRITE_SCALE_X, 0x0);
-    PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.unk_D4, MON_SPRITE_SCALE_Y, 0x0);
+    PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X, 0x0);
+    PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_Y, 0x0);
 }
 
 static BOOL ov76_0223DE78(BallCapsuleSystem *ballCapsuleSys)
 {
-    if (PokemonSprite_GetAttribute(ballCapsuleSys->ballCapsuleEditor.unk_D4, MON_SPRITE_SCALE_X) == 0x100) {
+    if (PokemonSprite_GetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X) == 0x100) {
         return 0;
-    } else if (PokemonSprite_GetAttribute(ballCapsuleSys->ballCapsuleEditor.unk_D4, MON_SPRITE_SCALE_X) >= 0x100) {
-        PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.unk_D4, MON_SPRITE_SCALE_X, 0x100);
-        PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.unk_D4, MON_SPRITE_SCALE_Y, 0x100);
+    } else if (PokemonSprite_GetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X) >= 0x100) {
+        PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X, 0x100);
+        PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_Y, 0x100);
         return 0;
     } else {
-        PokemonSprite_AddAttribute(ballCapsuleSys->ballCapsuleEditor.unk_D4, MON_SPRITE_SCALE_X, 0x20);
-        PokemonSprite_AddAttribute(ballCapsuleSys->ballCapsuleEditor.unk_D4, MON_SPRITE_SCALE_Y, 0x20);
-        PokemonSprite_CalcScaledYOffset(ballCapsuleSys->ballCapsuleEditor.unk_D4, ballCapsuleSys->ballCapsuleEditor.unk_D8);
+        PokemonSprite_AddAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X, 0x20);
+        PokemonSprite_AddAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_Y, 0x20);
+        PokemonSprite_CalcScaledYOffset(ballCapsuleSys->ballCapsuleEditor.monSprite, ballCapsuleSys->ballCapsuleEditor.yOffset);
     }
 
     return 1;
@@ -739,16 +739,16 @@ static BOOL ov76_0223DE78(BallCapsuleSystem *ballCapsuleSys)
 
 static BOOL ov76_0223DEF4(BallCapsuleSystem *ballCapsuleSys)
 {
-    if (PokemonSprite_GetAttribute(ballCapsuleSys->ballCapsuleEditor.unk_D4, MON_SPRITE_SCALE_X) == 0x0) {
+    if (PokemonSprite_GetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X) == 0x0) {
         return 0;
-    } else if (PokemonSprite_GetAttribute(ballCapsuleSys->ballCapsuleEditor.unk_D4, MON_SPRITE_SCALE_X) <= 0x0) {
-        PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.unk_D4, MON_SPRITE_SCALE_X, 0x0);
-        PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.unk_D4, MON_SPRITE_SCALE_Y, 0x0);
+    } else if (PokemonSprite_GetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X) <= 0x0) {
+        PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X, 0x0);
+        PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_Y, 0x0);
         return 0;
     } else {
-        PokemonSprite_AddAttribute(ballCapsuleSys->ballCapsuleEditor.unk_D4, MON_SPRITE_SCALE_X, -0x20);
-        PokemonSprite_AddAttribute(ballCapsuleSys->ballCapsuleEditor.unk_D4, MON_SPRITE_SCALE_Y, -0x20);
-        PokemonSprite_CalcScaledYOffset(ballCapsuleSys->ballCapsuleEditor.unk_D4, ballCapsuleSys->ballCapsuleEditor.unk_D8);
+        PokemonSprite_AddAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X, -0x20);
+        PokemonSprite_AddAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_Y, -0x20);
+        PokemonSprite_CalcScaledYOffset(ballCapsuleSys->ballCapsuleEditor.monSprite, ballCapsuleSys->ballCapsuleEditor.yOffset);
     }
 
     return 1;
@@ -756,12 +756,12 @@ static BOOL ov76_0223DEF4(BallCapsuleSystem *ballCapsuleSys)
 
 void ov76_0223DF70(BallCapsuleSystem *ballCapsuleSys, int param1)
 {
-    PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.unk_D4, MON_SPRITE_HIDE, param1);
+    PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_HIDE, param1);
 }
 
 void ov76_0223DF84(BallCapsuleSystem *ballCapsuleSys)
 {
-    PokemonSprite_Delete(ballCapsuleSys->ballCapsuleEditor.unk_D4);
+    PokemonSprite_Delete(ballCapsuleSys->ballCapsuleEditor.monSprite);
 }
 
 static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
@@ -783,8 +783,8 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             break;
         }
 
-        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.unk_14, 0x1, (1 << 0) | (1 << 1), 0, 0, 16, 0);
-        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.unk_14, 0x4, 0xFFFF, 0, 0, 16, 0);
+        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x1, (1 << 0) | (1 << 1), 0, 0, 16, 0);
+        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x4, 0xFFFF, 0, 0, 16, 0);
         GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 0);
         GXLayers_EngineBToggleLayers(GX_PLANEMASK_BG2, 1);
         Bg_SetPriority(BG_LAYER_SUB_3, 1);
@@ -794,15 +794,15 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         ballCapsuleSys->unk_3D4++;
         break;
     case 2:
-        if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.unk_14) != 0) {
+        if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
             break;
         }
         Bg_SetPriority(BG_LAYER_MAIN_3, 1);
-        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.unk_14, 0x1, 1 << 1, 0, 16, 0, 0);
+        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x1, 1 << 1, 0, 16, 0, 0);
         ballCapsuleSys->unk_3D4++;
         break;
     case 3:
-        if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.unk_14) != 0) {
+        if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
             break;
         }
         ov76_0223DCB8(ballCapsuleSys, 1);
@@ -814,8 +814,8 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         switch (ballCapsuleSys->unk_3DC) {
         case 0:
             GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 1);
-            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.unk_14, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 0, 10, 0);
-            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.unk_14, 0x8, 0xFFFF, 0, 0, 10, 0);
+            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 0, 10, 0);
+            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x8, 0xFFFF, 0, 0, 10, 0);
             ov76_0223DCB8(ballCapsuleSys, 0);
             ballCapsuleSys->unk_3E0 = 0;
             ov76_0223D3CC(ballCapsuleSys);
@@ -825,7 +825,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             ballCapsuleSys->unk_3DC++;
             break;
         case 1:
-            if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.unk_14) != 0) {
+            if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
                 break;
             }
 
@@ -833,16 +833,16 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
                 BallThrow v0;
 
                 v0.type = 1;
-                v0.heapID = HEAP_ID_53;
+                v0.heapID = HEAP_ID_BALL_CAPSULE_SYSTEM;
                 v0.mode = 0;
                 v0.target = 0xFF;
                 v0.bgPrio = 0;
                 v0.surface = 1;
-                v0.cellActorSys = ballCapsuleSys->ballCapsuleEditor.unk_08;
-                v0.paletteSys = ballCapsuleSys->ballCapsuleEditor.unk_14;
+                v0.cellActorSys = ballCapsuleSys->ballCapsuleEditor.spriteSys;
+                v0.paletteSys = ballCapsuleSys->ballCapsuleEditor.paletteData;
                 v0.ballID = Pokemon_GetValue(ballCapsuleSys->mon, MON_DATA_POKEBALL, NULL);
 
-                ballCapsuleSys->ballCapsuleEditor.unk_158 = ov12_02237728(&v0);
+                ballCapsuleSys->ballCapsuleEditor.ballRotation = ov12_02237728(&v0);
                 ballCapsuleSys->unk_3DC++;
             }
             break;
@@ -859,7 +859,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             Pokemon_SetValue(ballCapsuleSys->mon, MON_DATA_BALL_CAPSULE_ID, (u8 *)&v1);
             Pokemon_SetValue(ballCapsuleSys->mon, MON_DATA_BALL_CAPSULE, &v2);
 
-            ballCapsuleSys->ballCapsuleEditor.unk_154 = ov12_02236004(HEAP_ID_53, &v3);
+            ballCapsuleSys->ballCapsuleEditor.unk_154 = ov12_02236004(HEAP_ID_BALL_CAPSULE_SYSTEM, &v3);
             ov12_02236320(ballCapsuleSys->ballCapsuleEditor.unk_154);
         }
             ballCapsuleSys->unk_3DC++;
@@ -870,7 +870,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
                 break;
             }
 
-            if (ov12_02237810(ballCapsuleSys->ballCapsuleEditor.unk_158) == 1) {
+            if (ov12_02237810(ballCapsuleSys->ballCapsuleEditor.ballRotation) == 1) {
                 ov76_0223DE78(ballCapsuleSys);
                 ov12_022363B4(ballCapsuleSys->ballCapsuleEditor.unk_154);
                 ov76_0223DF70(ballCapsuleSys, 0);
@@ -882,12 +882,12 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         case 4: {
             BOOL v4 = ov76_0223DE78(ballCapsuleSys);
 
-            if (ov12_022377F8(ballCapsuleSys->ballCapsuleEditor.unk_158) != 0) {
+            if (ov12_022377F8(ballCapsuleSys->ballCapsuleEditor.ballRotation) != 0) {
                 break;
             }
 
             if (v4 == 0) {
-                ov12_0223783C(ballCapsuleSys->ballCapsuleEditor.unk_158);
+                ov12_0223783C(ballCapsuleSys->ballCapsuleEditor.ballRotation);
                 GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 0);
                 ov76_0223DE00(ballCapsuleSys);
                 ballCapsuleSys->unk_3E0 = 0;
@@ -903,7 +903,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
                 break;
             }
 
-            if (PokemonSprite_IsAnimActive(ballCapsuleSys->ballCapsuleEditor.unk_D4) != 0) {
+            if (PokemonSprite_IsAnimActive(ballCapsuleSys->ballCapsuleEditor.monSprite) != 0) {
                 break;
             }
 
@@ -920,16 +920,16 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
                 BallThrow v5;
 
                 v5.type = 1;
-                v5.heapID = HEAP_ID_53;
+                v5.heapID = HEAP_ID_BALL_CAPSULE_SYSTEM;
                 v5.mode = 5;
                 v5.target = 0xFF;
                 v5.bgPrio = 0;
                 v5.surface = 1;
-                v5.cellActorSys = ballCapsuleSys->ballCapsuleEditor.unk_08;
-                v5.paletteSys = ballCapsuleSys->ballCapsuleEditor.unk_14;
+                v5.cellActorSys = ballCapsuleSys->ballCapsuleEditor.spriteSys;
+                v5.paletteSys = ballCapsuleSys->ballCapsuleEditor.paletteData;
                 v5.ballID = Pokemon_GetValue(ballCapsuleSys->mon, MON_DATA_POKEBALL, NULL);
 
-                ballCapsuleSys->ballCapsuleEditor.unk_158 = ov12_02237728(&v5);
+                ballCapsuleSys->ballCapsuleEditor.ballRotation = ov12_02237728(&v5);
 
                 ov76_0223D3A0();
                 GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 1);
@@ -940,17 +940,17 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         case 7: {
             BOOL v6 = ov76_0223DEF4(ballCapsuleSys);
 
-            if ((ov12_022377F8(ballCapsuleSys->ballCapsuleEditor.unk_158) == 0) && (v6 == 0)) {
-                PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.unk_14, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 10, 0, 0);
-                PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.unk_14, 0x8, 0xFFFF, 0, 10, 0, 0);
+            if ((ov12_022377F8(ballCapsuleSys->ballCapsuleEditor.ballRotation) == 0) && (v6 == 0)) {
+                PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 10, 0, 0);
+                PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x8, 0xFFFF, 0, 10, 0, 0);
                 ov76_0223DF70(ballCapsuleSys, 1);
                 ov76_0223DF84(ballCapsuleSys);
-                ov12_0223783C(ballCapsuleSys->ballCapsuleEditor.unk_158);
+                ov12_0223783C(ballCapsuleSys->ballCapsuleEditor.ballRotation);
                 ballCapsuleSys->unk_3DC++;
             }
         } break;
         default:
-            if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.unk_14) != 0) {
+            if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
                 break;
             }
 
@@ -997,31 +997,31 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
                 break;
             }
 
-            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.unk_14, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 0, 10, 0);
-            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.unk_14, 0x8, 0xFFFF, 0, 0, 10, 0);
+            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 0, 10, 0);
+            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x8, 0xFFFF, 0, 0, 10, 0);
             ov76_0223DCB8(ballCapsuleSys, 0);
             GXLayers_EngineBToggleLayers(GX_PLANEMASK_BG0, 0);
             ballCapsuleSys->unk_3DC++;
             break;
         case 1:
-            if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.unk_14) != 0) {
+            if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
                 break;
             }
 
-            PaletteData_SetAutoTransparent(ballCapsuleSys->ballCapsuleEditor.unk_14, 0);
-            ov76_0223CA98(ballCapsuleSys->ballCapsuleEditor.unk_10, &ballCapsuleSys->ballCapsuleEditor.unk_18[2], 4, 2, 1, 27, 4, 0 + ((1 + (18 + 12)) + 9));
+            PaletteData_SetAutoTransparent(ballCapsuleSys->ballCapsuleEditor.paletteData, 0);
+            ov76_0223CA98(ballCapsuleSys->ballCapsuleEditor.bgConfig, &ballCapsuleSys->ballCapsuleEditor.unk_18[2], 4, 2, 1, 27, 4, 0 + ((1 + (18 + 12)) + 9));
 
             {
                 UnkStruct_02015958 v9;
 
-                v9.unk_00 = ballCapsuleSys->ballCapsuleEditor.unk_10;
+                v9.unk_00 = ballCapsuleSys->ballCapsuleEditor.bgConfig;
                 v9.unk_04 = 4;
                 v9.unk_08 = (((3 + 1) * 2) + (((3 + 1) * 2) + (((3 + 1) * 2) + (((3 + 1) * 2) + (((3 + 1) * 2) + (((3 + 1) * 2) + (((3 + 1) * 2) + (((3 + 1) * 2) + ((27 * 4) + (0 + ((1 + (18 + 12)) + 9)))))))))));
                 v9.unk_0C = 5;
                 v9.unk_10 = 25;
                 v9.unk_11 = 6;
 
-                ballCapsuleSys->ballCapsuleEditor.unk_150 = sub_02015920(HEAP_ID_53);
+                ballCapsuleSys->ballCapsuleEditor.unk_150 = sub_02015920(HEAP_ID_BALL_CAPSULE_SYSTEM);
                 sub_02015958(ballCapsuleSys->ballCapsuleEditor.unk_150, &v9);
             }
 
@@ -1039,7 +1039,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             case 1:
             case 2:
                 ballCapsuleSys->unk_3E0 = v10;
-                PaletteData_SetAutoTransparent(ballCapsuleSys->ballCapsuleEditor.unk_14, 1);
+                PaletteData_SetAutoTransparent(ballCapsuleSys->ballCapsuleEditor.paletteData, 1);
                 sub_02015A54(ballCapsuleSys->ballCapsuleEditor.unk_150);
                 sub_02015938(ballCapsuleSys->ballCapsuleEditor.unk_150);
                 Window_EraseMessageBox(&ballCapsuleSys->ballCapsuleEditor.unk_18[2], 1);
@@ -1053,12 +1053,12 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             }
         } break;
         case 4:
-            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.unk_14, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 10, 0, 0);
-            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.unk_14, 0x8, 0xFFFF, 0, 10, 0, 0);
+            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 10, 0, 0);
+            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x8, 0xFFFF, 0, 10, 0, 0);
             ballCapsuleSys->unk_3DC++;
             break;
         case 5:
-            if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.unk_14) != 0) {
+            if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
                 break;
             }
 
@@ -1086,17 +1086,17 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
     } break;
     case 8:
         GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 1);
-        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.unk_14, 0x1, 1 << 1, 0, 0, 16, 0);
+        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x1, 1 << 1, 0, 0, 16, 0);
         ballCapsuleSys->unk_3D4++;
         break;
     case 9:
 
-        if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.unk_14) != 0) {
+        if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
             break;
         }
 
-        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.unk_14, 0x1, 1 << 0, 0, 16, 0, 0);
-        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.unk_14, 0x4, 0xFFFF, 0, 16, 0, 0);
+        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x1, 1 << 0, 0, 16, 0, 0);
+        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x4, 0xFFFF, 0, 16, 0, 0);
         Bg_SetPriority(BG_LAYER_MAIN_3, 3);
         Bg_SetPriority(BG_LAYER_SUB_3, 3);
         GXLayers_EngineBToggleLayers(GX_PLANEMASK_BG2, 0);
@@ -1108,7 +1108,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         ballCapsuleSys->unk_3D4++;
         break;
     case 10:
-        if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.unk_14) != 0) {
+        if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
             break;
         }
 
@@ -1485,11 +1485,11 @@ void ov76_0223ECB0(void *param0)
 {
     BallCapsuleSystem *ballCapsuleSys = param0;
 
-    PokemonSpriteManager_UpdateCharAndPltt(ballCapsuleSys->ballCapsuleEditor.unk_D0);
+    PokemonSpriteManager_UpdateCharAndPltt(ballCapsuleSys->ballCapsuleEditor.monSpriteMan);
     VramTransfer_Process();
     SpriteSystem_TransferOam();
-    PaletteData_CommitFadedBuffers(ballCapsuleSys->ballCapsuleEditor.unk_14);
-    Bg_RunScheduledUpdates(ballCapsuleSys->ballCapsuleEditor.unk_10);
+    PaletteData_CommitFadedBuffers(ballCapsuleSys->ballCapsuleEditor.paletteData);
+    Bg_RunScheduledUpdates(ballCapsuleSys->ballCapsuleEditor.bgConfig);
 
     OS_SetIrqCheckFlag(OS_IE_V_BLANK);
 }

@@ -166,9 +166,9 @@ void ov76_0223B314(BallCapsuleSystem *ballCapsuleSys, u8 param1)
 
 void ov76_0223B36C(BallCapsuleSystem *ballCapsuleSys, u8 param1, u8 param2)
 {
-    SpriteSystem *v2 = ballCapsuleSys->ballCapsuleEditor.unk_08;
-    SpriteManager *v3 = ballCapsuleSys->ballCapsuleEditor.unk_0C;
-    PaletteData *v4 = ballCapsuleSys->ballCapsuleEditor.unk_14;
+    SpriteSystem *v2 = ballCapsuleSys->ballCapsuleEditor.spriteSys;
+    SpriteManager *v3 = ballCapsuleSys->ballCapsuleEditor.spriteMan;
+    PaletteData *v4 = ballCapsuleSys->ballCapsuleEditor.paletteData;
 
     SpriteSystem_LoadPaletteBuffer(v4, 3, v2, v3, 91, 293, 0, 1, NNS_G2D_VRAM_TYPE_2DSUB, 21000 + 293);
 
@@ -259,9 +259,9 @@ BOOL ov76_0223B52C(BallCapsuleSystem *ballCapsuleSys, u8 param1)
     int v1;
     PlacedSeal *v2;
     SpriteTemplate v3;
-    SpriteSystem *v4 = ballCapsuleSys->ballCapsuleEditor.unk_08;
-    SpriteManager *v5 = ballCapsuleSys->ballCapsuleEditor.unk_0C;
-    PaletteData *v6 = ballCapsuleSys->ballCapsuleEditor.unk_14;
+    SpriteSystem *v4 = ballCapsuleSys->ballCapsuleEditor.spriteSys;
+    SpriteManager *v5 = ballCapsuleSys->ballCapsuleEditor.spriteMan;
+    PaletteData *v6 = ballCapsuleSys->ballCapsuleEditor.paletteData;
     v2 = &ballCapsuleSys->placedSeals[param1];
 
     if (v2->unk_00 == 1) {
@@ -395,7 +395,7 @@ void ov76_0223B704(BallCapsuleSystem *ballCapsuleSys, int param1)
     v0 = sub_02098140(ballCapsuleSys->placedSeals[param1].unk_04);
     v1 = (param1 + 20000);
 
-    SpriteManager_UnloadCharObjById(ballCapsuleSys->ballCapsuleEditor.unk_0C, v1);
+    SpriteManager_UnloadCharObjById(ballCapsuleSys->ballCapsuleEditor.spriteMan, v1);
     Sprite_DeleteAndFreeResources(ballCapsuleSys->placedSeals[param1].unk_08);
 
     ballCapsuleSys->placedSeals[param1].unk_08 = NULL;

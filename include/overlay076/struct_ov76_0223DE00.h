@@ -95,23 +95,23 @@ typedef struct {
 typedef struct {
     int unk_00;
     BOOL unk_04;
-    SpriteSystem *unk_08;
-    SpriteManager *unk_0C;
-    BgConfig *unk_10;
-    PaletteData *unk_14;
+    SpriteSystem *spriteSys;
+    SpriteManager *spriteMan;
+    BgConfig *bgConfig;
+    PaletteData *paletteData;
     Window unk_18[BALL_CAPSULE_WINDOW_MAX];
     StringList *unk_C8;
-    Menu *unk_CC;
-    PokemonSpriteManager *unk_D0;
-    PokemonSprite *unk_D4;
-    int unk_D8;
+    Menu *menu;
+    PokemonSpriteManager *monSpriteMan;
+    PokemonSprite *monSprite;
+    int yOffset;
     UnkStruct_ov22_02258A48 unk_DC;
     TouchScreenActions *unk_F8;
-    TouchScreenRect unk_FC[BALL_CAPSULE_BUTTON_PLACED_SEAL_MAX];
+    TouchScreenRect buttonRects[BALL_CAPSULE_BUTTON_PLACED_SEAL_MAX];
     UnkStruct_02015920 *unk_150;
     UnkStruct_ov12_02235FE0 *unk_154;
-    BallRotation *unk_158;
-    G3DPipelineBuffers *unk_15C;
+    BallRotation *ballRotation;
+    G3DPipelineBuffers *pipelineBuffers;
     UnkStruct_02012744 *unk_160;
     FontOAM *unk_164[2];
     CharTransferAllocation unk_16C[2];
@@ -143,10 +143,10 @@ typedef struct {
     SealCounts *sealCounts;
     BallCapsule selectedCapsule;
     u8 currentSealCounts[SEAL_ID_MAX];
+
     u8 padding_D1[3];
 
     BallCapsuleEditor ballCapsuleEditor;
-
     BallCapsuleEditData editData[TOTAL_CAPSULES];
 
     ManagedSprite *unk_2F4[2];
@@ -161,7 +161,9 @@ typedef struct {
     // Second element is only used for "shift" feature
     int selectedCapsules[2];
     int unk_3CC;
+
     u8 padding_3D0[4];
+
     int unk_3D4;
     int unk_3D8;
     int unk_3DC;
