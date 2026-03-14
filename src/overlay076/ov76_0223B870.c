@@ -239,7 +239,7 @@ void ov76_0223BB04(BallCapsuleSystem *ballCapsuleSys)
 void ov76_0223BBAC(BallCapsuleSystem *ballCapsuleSys)
 {
     int v0;
-    UnkStruct_ov76_0223BBAC *v1;
+    BallCapsuleEditorSprites *v1;
     SpriteTemplate v2;
     SpriteSystem *v3 = ballCapsuleSys->unk_D4.unk_08;
     SpriteManager *v4 = ballCapsuleSys->unk_D4.unk_0C;
@@ -1140,7 +1140,7 @@ void ov76_0223CFEC(BallCapsuleSystem *ballCapsuleSys, NARC *param1)
 void ov76_0223D16C(BallCapsuleSystem *ballCapsuleSys)
 {
     int v0;
-    UnkStruct_ov76_0223BBAC *v1;
+    BallCapsuleEditorSprites *v1;
     SpriteTemplate v2;
     SpriteSystem *v3 = ballCapsuleSys->unk_D4.unk_08;
     SpriteManager *v4 = ballCapsuleSys->unk_D4.unk_0C;

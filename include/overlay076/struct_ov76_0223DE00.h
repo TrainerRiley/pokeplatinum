@@ -17,13 +17,66 @@
 #include "menu.h"
 #include "narc.h"
 #include "palette.h"
-#include "pokemon.h"
 #include "pokemon_anim.h"
 #include "pokemon_sprite.h"
 #include "sprite_system.h"
 #include "string_list.h"
 #include "touch_screen.h"
 #include "touch_screen_actions.h"
+
+#define SEALS_PER_PAGE                   8
+#define BALL_CAPSULE_INVALID_PARTY_INDEX 0xff
+
+// Static buttons (seal selectors, seal pages, etc.)
+enum BallCapsuleButtons {
+    BALL_CAPSULE_BUTTON_SEAL1 = 0,
+    BALL_CAPSULE_BUTTON_SEAL2,
+    BALL_CAPSULE_BUTTON_SEAL3,
+    BALL_CAPSULE_BUTTON_SEAL4,
+    BALL_CAPSULE_BUTTON_SEAL5,
+    BALL_CAPSULE_BUTTON_SEAL6,
+    BALL_CAPSULE_BUTTON_SEAL7,
+    BALL_CAPSULE_BUTTON_SEAL8,
+    BALL_CAPSULE_BUTTON_PREVPAGE,
+    BALL_CAPSULE_BUTTON_NEXTPAGE,
+    BALL_CAPSULE_BUTTON_CONFIRM,
+    BALL_CAPSULE_BUTTON_DECIDE,
+    BALL_CAPSULE_BUTTON_CANCEL,
+
+    BALL_CAPSULE_BUTTON_MAX,
+};
+
+// Buttons for the movable seals on the ball
+enum BallCapsuleSealButtons {
+
+    BALL_CAPSULE_BUTTON_PLACED_SEAL1 = BALL_CAPSULE_BUTTON_MAX,
+    BALL_CAPSULE_BUTTON_PLACED_SEAL2,
+    BALL_CAPSULE_BUTTON_PLACED_SEAL3,
+    BALL_CAPSULE_BUTTON_PLACED_SEAL4,
+    BALL_CAPSULE_BUTTON_PLACED_SEAL5,
+    BALL_CAPSULE_BUTTON_PLACED_SEAL6,
+    BALL_CAPSULE_BUTTON_PLACED_SEAL7,
+    BALL_CAPSULE_BUTTON_PLACED_SEAL8,
+
+    BALL_CAPSULE_BUTTON_PLACED_SEAL_MAX,
+};
+
+enum BallCapsuleEditorWindows {
+    BALL_CAPSULE_WINDOW_TOP_SCREEN_MAIN = 0,
+    BALL_CAPSULE_WINDOW_TOP_SCREEN_SELECT,
+
+    BALL_CAPSULE_WINDOW_BOTTOM_SCREEN_MAIN,
+    BALL_CAPSULE_WINDOW_BOTTOM_SCREEN_SEAL_COUNT1,
+    BALL_CAPSULE_WINDOW_BOTTOM_SCREEN_SEAL_COUNT2,
+    BALL_CAPSULE_WINDOW_BOTTOM_SCREEN_SEAL_COUNT3,
+    BALL_CAPSULE_WINDOW_BOTTOM_SCREEN_SEAL_COUNT4,
+    BALL_CAPSULE_WINDOW_BOTTOM_SCREEN_SEAL_COUNT5,
+    BALL_CAPSULE_WINDOW_BOTTOM_SCREEN_SEAL_COUNT6,
+    BALL_CAPSULE_WINDOW_BOTTOM_SCREEN_SEAL_COUNT7,
+    BALL_CAPSULE_WINDOW_BOTTOM_SCREEN_SEAL_COUNT8,
+
+    BALL_CAPSULE_WINDOW_MAX,
+};
 
 typedef struct {
     BOOL unk_00;
@@ -33,11 +86,11 @@ typedef struct {
     u8 padding_07;
     ManagedSprite *unk_08;
     TouchScreenRect *unk_0C;
-} UnkStruct_ov76_0223B52C;
+} PlacedSeal;
 
 typedef struct {
     ManagedSprite *unk_00[13];
-} UnkStruct_ov76_0223BBAC;
+} BallCapsuleEditorSprites;
 
 typedef struct {
     int unk_00;
@@ -70,23 +123,23 @@ typedef struct {
 typedef struct {
     int unk_00;
     BallCapsule *unk_04;
-} UnkStruct_ov76_0223DD88_sub1;
+} BallCapsuleData;
 
 typedef struct {
     int unk_00;
     int unk_04;
     ManagedSprite *unk_08;
-} UnkStruct_ov76_0223DD88_sub2;
+} BallCapsuleEditData;
 
 typedef struct {
     int unk_00;
     int unk_04;
     u8 unk_08[8];
-} UnkStruct_ov76_0223DD88_sub3;
+} SealCasePages;
 
 typedef struct {
     UnkStruct_02097F18 *unk_00;
-    UnkStruct_ov76_0223DD88_sub1 unk_04[TOTAL_CAPSULES];
+    BallCapsuleData unk_04[TOTAL_CAPSULES];
     SealCounts *unk_64;
     BallCapsule unk_68;
     u8 unk_80[SEAL_ID_MAX];
@@ -94,13 +147,13 @@ typedef struct {
 
     UnkStruct_ov76_0223C398 unk_D4;
 
-    UnkStruct_ov76_0223DD88_sub2 unk_264[TOTAL_CAPSULES];
+    BallCapsuleEditData unk_264[TOTAL_CAPSULES];
 
     ManagedSprite *unk_2F4[2];
     ManagedSprite *unk_2FC[MAX_PARTY_SIZE];
     ManagedSprite *unk_314[4];
 
-    UnkStruct_ov76_0223B52C unk_324[SEALS_PER_CAPSULE];
+    PlacedSeal unk_324[SEALS_PER_CAPSULE];
     int unk_3A4[SEALS_PER_CAPSULE];
     int unk_3C4[2];
     int unk_3CC;
@@ -109,8 +162,8 @@ typedef struct {
     int unk_3D8;
     int unk_3DC;
     int unk_3E0;
-    UnkStruct_ov76_0223BBAC unk_3E4;
-    UnkStruct_ov76_0223DD88_sub3 unk_418;
+    BallCapsuleEditorSprites unk_3E4;
+    SealCasePages unk_418;
     Pokemon *unk_428;
     NARC *unk_42C;
 } BallCapsuleSystem;

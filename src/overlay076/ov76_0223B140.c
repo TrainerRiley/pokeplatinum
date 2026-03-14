@@ -257,7 +257,7 @@ BOOL ov76_0223B52C(BallCapsuleSystem *ballCapsuleSys, u8 param1)
 {
     int v0;
     int v1;
-    UnkStruct_ov76_0223B52C *v2;
+    PlacedSeal *v2;
     SpriteTemplate v3;
     SpriteSystem *v4 = ballCapsuleSys->unk_D4.unk_08;
     SpriteManager *v5 = ballCapsuleSys->unk_D4.unk_0C;
