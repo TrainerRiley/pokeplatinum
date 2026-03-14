@@ -57,7 +57,7 @@ typedef struct {
 typedef struct {
     BallCapsuleSystem *unk_00;
     UnkStruct_02097F38_sub1 *unk_04;
-    UnkStruct_02097F18 *unk_08;
+    BallCapsuleAppData *unk_08;
     PartyMenu *partyMenu;
     SaveData *saveData;
     int unk_14;
@@ -77,7 +77,7 @@ const ApplicationManagerTemplate Unk_020F64C0 = {
 static int sub_02097B18(ApplicationManager *appMan, int *param1)
 {
     BallCapsuleSystem *ballCapsuleSys;
-    UnkStruct_02097F18 *v1;
+    BallCapsuleAppData *v1;
 
     Heap_Create(HEAP_ID_APPLICATION, HEAP_ID_53, 0x80000);
     ov76_0223EB20(53);
@@ -86,80 +86,80 @@ static int sub_02097B18(ApplicationManager *appMan, int *param1)
     ballCapsuleSys = ApplicationManager_NewData(appMan, sizeof(BallCapsuleSystem), HEAP_ID_53);
     memset(ballCapsuleSys, 0, sizeof(BallCapsuleSystem));
 
-    ballCapsuleSys->unk_D4.unk_15C = ov76_0223BE6C();
+    ballCapsuleSys->ballCapsuleEditor.unk_15C = ov76_0223BE6C();
     v1 = ApplicationManager_Args(appMan);
-    ballCapsuleSys->unk_00 = v1;
-    ballCapsuleSys->unk_42C = NARC_ctor(NARC_INDEX_POKETOOL__POKE_EDIT__PL_POKE_DATA, HEAP_ID_53);
-    ballCapsuleSys->unk_428 = Pokemon_New(HEAP_ID_53);
-    ballCapsuleSys->unk_D4.unk_00 = 0xFF;
-    ballCapsuleSys->unk_418.unk_00 = 0;
+    ballCapsuleSys->appData = v1;
+    ballCapsuleSys->narc = NARC_ctor(NARC_INDEX_POKETOOL__POKE_EDIT__PL_POKE_DATA, HEAP_ID_53);
+    ballCapsuleSys->mon = Pokemon_New(HEAP_ID_53);
+    ballCapsuleSys->ballCapsuleEditor.unk_00 = 0xFF;
+    ballCapsuleSys->sealCasePages.unk_00 = 0;
 
     {
         int v2 = 0;
         int v3;
 
-        v3 = (SealCase_CountUniqueSeals(ballCapsuleSys->unk_00->unk_20));
+        v3 = (SealCase_CountUniqueSeals(ballCapsuleSys->appData->unk_20));
 
         if (v3 % 8) {
             v2 = 1;
         }
 
-        ballCapsuleSys->unk_418.unk_04 = (SealCase_CountUniqueSeals(ballCapsuleSys->unk_00->unk_20) / 8) + v2;
+        ballCapsuleSys->sealCasePages.unk_04 = (SealCase_CountUniqueSeals(ballCapsuleSys->appData->unk_20) / 8) + v2;
     }
 
-    if (ballCapsuleSys->unk_418.unk_04 > (SEAL_ID_MAX / 8)) {
-        ballCapsuleSys->unk_418.unk_04 = (SEAL_ID_MAX / 8);
+    if (ballCapsuleSys->sealCasePages.unk_04 > (SEAL_ID_MAX / 8)) {
+        ballCapsuleSys->sealCasePages.unk_04 = (SEAL_ID_MAX / 8);
     }
 
-    ballCapsuleSys->unk_3C4[0] = sub_02097F18(ballCapsuleSys->unk_00);
-    ballCapsuleSys->unk_3C4[1] = sub_02097F18(ballCapsuleSys->unk_00);
+    ballCapsuleSys->selectedCapsules[0] = sub_02097F18(ballCapsuleSys->appData);
+    ballCapsuleSys->selectedCapsules[1] = sub_02097F18(ballCapsuleSys->appData);
 
     {
         int i;
         int capsuleId;
         BallCapsule *capsule;
 
-        ballCapsuleSys->unk_64 = SealCase_GetSealsObtained(ballCapsuleSys->unk_00->unk_20);
+        ballCapsuleSys->sealCounts = SealCase_GetSealsObtained(ballCapsuleSys->appData->unk_20);
 
         for (i = 0; i < TOTAL_CAPSULES; i++) {
-            capsule = SealCase_GetCapsuleById(ballCapsuleSys->unk_00->unk_20, i);
-            ballCapsuleSys->unk_04[i].unk_00 = 0xff;
-            ballCapsuleSys->unk_04[i].unk_04 = capsule;
+            capsule = SealCase_GetCapsuleById(ballCapsuleSys->appData->unk_20, i);
+            ballCapsuleSys->capsuleData[i].unk_00 = 0xff;
+            ballCapsuleSys->capsuleData[i].unk_04 = capsule;
         }
 
         for (i = 0; i < 6; i++) {
-            if (ballCapsuleSys->unk_00->unk_04[i] == NULL) {
+            if (ballCapsuleSys->appData->unk_04[i] == NULL) {
                 continue;
             }
 
-            capsuleId = Pokemon_GetValue(ballCapsuleSys->unk_00->unk_04[i], MON_DATA_BALL_CAPSULE_ID, 0);
+            capsuleId = Pokemon_GetValue(ballCapsuleSys->appData->unk_04[i], MON_DATA_BALL_CAPSULE_ID, 0);
 
             if (capsuleId != 0) {
-                ballCapsuleSys->unk_04[capsuleId - 1].unk_00 = i;
+                ballCapsuleSys->capsuleData[capsuleId - 1].unk_00 = i;
             }
         }
     }
 
-    ballCapsuleSys->unk_D4.unk_10 = BgConfig_New(HEAP_ID_53);
+    ballCapsuleSys->ballCapsuleEditor.unk_10 = BgConfig_New(HEAP_ID_53);
     VramTransfer_New(64, HEAP_ID_53);
-    ballCapsuleSys->unk_D4.unk_14 = PaletteData_New(HEAP_ID_53);
-    PaletteData_SetAutoTransparent(ballCapsuleSys->unk_D4.unk_14, 1);
-    PaletteData_AllocBuffer(ballCapsuleSys->unk_D4.unk_14, 0, 0x200, HEAP_ID_53);
-    PaletteData_AllocBuffer(ballCapsuleSys->unk_D4.unk_14, 1, 0x200, HEAP_ID_53);
-    PaletteData_AllocBuffer(ballCapsuleSys->unk_D4.unk_14, 2, 0x200, HEAP_ID_53);
-    PaletteData_AllocBuffer(ballCapsuleSys->unk_D4.unk_14, 3, 0x200, HEAP_ID_53);
+    ballCapsuleSys->ballCapsuleEditor.unk_14 = PaletteData_New(HEAP_ID_53);
+    PaletteData_SetAutoTransparent(ballCapsuleSys->ballCapsuleEditor.unk_14, 1);
+    PaletteData_AllocBuffer(ballCapsuleSys->ballCapsuleEditor.unk_14, 0, 0x200, HEAP_ID_53);
+    PaletteData_AllocBuffer(ballCapsuleSys->ballCapsuleEditor.unk_14, 1, 0x200, HEAP_ID_53);
+    PaletteData_AllocBuffer(ballCapsuleSys->ballCapsuleEditor.unk_14, 2, 0x200, HEAP_ID_53);
+    PaletteData_AllocBuffer(ballCapsuleSys->ballCapsuleEditor.unk_14, 3, 0x200, HEAP_ID_53);
 
-    ov76_0223EB64(ballCapsuleSys->unk_D4.unk_10);
+    ov76_0223EB64(ballCapsuleSys->ballCapsuleEditor.unk_10);
     ov76_0223BF10();
 
-    ballCapsuleSys->unk_D4.unk_D0 = PokemonSpriteManager_New(HEAP_ID_53);
-    ballCapsuleSys->unk_D4.unk_188 = PokemonAnimManager_New(HEAP_ID_53, 1, FALSE);
+    ballCapsuleSys->ballCapsuleEditor.unk_D0 = PokemonSpriteManager_New(HEAP_ID_53);
+    ballCapsuleSys->ballCapsuleEditor.unk_188 = PokemonAnimManager_New(HEAP_ID_53, 1, FALSE);
 
-    int v7 = Options_Frame(ballCapsuleSys->unk_00->options);
-    ov76_0223C8EC(ballCapsuleSys->unk_D4.unk_10, ballCapsuleSys->unk_D4.unk_14, v7);
-    ov76_0223C974(ballCapsuleSys->unk_D4.unk_10, ballCapsuleSys->unk_D4.unk_14, v7);
+    int v7 = Options_Frame(ballCapsuleSys->appData->options);
+    ov76_0223C8EC(ballCapsuleSys->ballCapsuleEditor.unk_10, ballCapsuleSys->ballCapsuleEditor.unk_14, v7);
+    ov76_0223C974(ballCapsuleSys->ballCapsuleEditor.unk_10, ballCapsuleSys->ballCapsuleEditor.unk_14, v7);
 
-    ov76_0223C398(&ballCapsuleSys->unk_D4);
+    ov76_0223C398(&ballCapsuleSys->ballCapsuleEditor);
 
     {
         u32 v8;
@@ -198,7 +198,7 @@ static int sub_02097D30(ApplicationManager *appMan, int *param1)
             break;
         }
 
-        PokemonSpriteManager_DrawSprites(ballCapsuleSys->unk_D4.unk_D0);
+        PokemonSpriteManager_DrawSprites(ballCapsuleSys->ballCapsuleEditor.unk_D0);
         ov76_0223BF50();
     } break;
     case 2:
@@ -223,31 +223,31 @@ static int sub_02097D88(ApplicationManager *appMan, int *param1)
     GXLayers_EngineBToggleLayers(GX_PLANEMASK_BG1, 0);
     GXLayers_EngineBToggleLayers(GX_PLANEMASK_BG2, 0);
     GXLayers_EngineBToggleLayers(GX_PLANEMASK_BG3, 0);
-    Bg_FreeTilemapBuffer(ballCapsuleSys->unk_D4.unk_10, 1);
-    Bg_FreeTilemapBuffer(ballCapsuleSys->unk_D4.unk_10, 2);
-    Bg_FreeTilemapBuffer(ballCapsuleSys->unk_D4.unk_10, 3);
-    Bg_FreeTilemapBuffer(ballCapsuleSys->unk_D4.unk_10, 4);
-    Bg_FreeTilemapBuffer(ballCapsuleSys->unk_D4.unk_10, 5);
-    Bg_FreeTilemapBuffer(ballCapsuleSys->unk_D4.unk_10, 6);
-    Bg_FreeTilemapBuffer(ballCapsuleSys->unk_D4.unk_10, 7);
-    Heap_Free(ballCapsuleSys->unk_D4.unk_10);
-    PaletteData_FreeBuffer(ballCapsuleSys->unk_D4.unk_14, 0);
-    PaletteData_FreeBuffer(ballCapsuleSys->unk_D4.unk_14, 1);
-    PaletteData_FreeBuffer(ballCapsuleSys->unk_D4.unk_14, 2);
-    PaletteData_FreeBuffer(ballCapsuleSys->unk_D4.unk_14, 3);
-    PaletteData_Free(ballCapsuleSys->unk_D4.unk_14);
-    sub_02097F20(ballCapsuleSys->unk_00, ballCapsuleSys->unk_3C4[0]);
-    Heap_Free(ballCapsuleSys->unk_428);
+    Bg_FreeTilemapBuffer(ballCapsuleSys->ballCapsuleEditor.unk_10, 1);
+    Bg_FreeTilemapBuffer(ballCapsuleSys->ballCapsuleEditor.unk_10, 2);
+    Bg_FreeTilemapBuffer(ballCapsuleSys->ballCapsuleEditor.unk_10, 3);
+    Bg_FreeTilemapBuffer(ballCapsuleSys->ballCapsuleEditor.unk_10, 4);
+    Bg_FreeTilemapBuffer(ballCapsuleSys->ballCapsuleEditor.unk_10, 5);
+    Bg_FreeTilemapBuffer(ballCapsuleSys->ballCapsuleEditor.unk_10, 6);
+    Bg_FreeTilemapBuffer(ballCapsuleSys->ballCapsuleEditor.unk_10, 7);
+    Heap_Free(ballCapsuleSys->ballCapsuleEditor.unk_10);
+    PaletteData_FreeBuffer(ballCapsuleSys->ballCapsuleEditor.unk_14, 0);
+    PaletteData_FreeBuffer(ballCapsuleSys->ballCapsuleEditor.unk_14, 1);
+    PaletteData_FreeBuffer(ballCapsuleSys->ballCapsuleEditor.unk_14, 2);
+    PaletteData_FreeBuffer(ballCapsuleSys->ballCapsuleEditor.unk_14, 3);
+    PaletteData_Free(ballCapsuleSys->ballCapsuleEditor.unk_14);
+    sub_02097F20(ballCapsuleSys->appData, ballCapsuleSys->selectedCapsules[0]);
+    Heap_Free(ballCapsuleSys->mon);
     ov76_0223B678(ballCapsuleSys);
-    TouchScreenActions_Free(ballCapsuleSys->unk_D4.unk_F8);
-    PokemonSpriteManager_Free(ballCapsuleSys->unk_D4.unk_D0);
-    PokemonAnimManager_Free(ballCapsuleSys->unk_D4.unk_188);
+    TouchScreenActions_Free(ballCapsuleSys->ballCapsuleEditor.unk_F8);
+    PokemonSpriteManager_Free(ballCapsuleSys->ballCapsuleEditor.unk_D0);
+    PokemonAnimManager_Free(ballCapsuleSys->ballCapsuleEditor.unk_188);
     ov76_0223B8C4(ballCapsuleSys);
-    ov76_0223C424(&ballCapsuleSys->unk_D4);
+    ov76_0223C424(&ballCapsuleSys->ballCapsuleEditor);
     VramTransfer_Free();
-    G3DPipelineBuffers_Free(ballCapsuleSys->unk_D4.unk_15C);
+    G3DPipelineBuffers_Free(ballCapsuleSys->ballCapsuleEditor.unk_15C);
     ov76_0223EB54(53);
-    NARC_dtor(ballCapsuleSys->unk_42C);
+    NARC_dtor(ballCapsuleSys->narc);
     ApplicationManager_FreeData(appMan);
 
     {
@@ -267,7 +267,7 @@ static int sub_02097D88(ApplicationManager *appMan, int *param1)
     return 1;
 }
 
-Pokemon *sub_02097F00(UnkStruct_02097F18 *param0, int param1)
+Pokemon *sub_02097F00(BallCapsuleAppData *param0, int param1)
 {
     int v0 = param1;
 
@@ -279,22 +279,22 @@ Pokemon *sub_02097F00(UnkStruct_02097F18 *param0, int param1)
     return param0->unk_04[v0];
 }
 
-u8 sub_02097F18(UnkStruct_02097F18 *param0)
+u8 sub_02097F18(BallCapsuleAppData *param0)
 {
     return param0->unk_2C;
 }
 
-void sub_02097F20(UnkStruct_02097F18 *param0, u8 param1)
+void sub_02097F20(BallCapsuleAppData *param0, u8 param1)
 {
     param0->unk_2C = param1;
 }
 
-u8 sub_02097F28(UnkStruct_02097F18 *param0)
+u8 sub_02097F28(BallCapsuleAppData *param0)
 {
     return param0->unk_2D;
 }
 
-void sub_02097F30(UnkStruct_02097F18 *param0, u8 param1)
+void sub_02097F30(BallCapsuleAppData *param0, u8 param1)
 {
     param0->unk_2D = param1;
 }
@@ -302,7 +302,7 @@ void sub_02097F30(UnkStruct_02097F18 *param0, u8 param1)
 static BOOL sub_02097F38(FieldTask *param0)
 {
     UnkStruct_02097F38 *v0 = FieldTask_GetEnv(param0);
-    UnkStruct_02097F18 *v1 = v0->unk_08;
+    BallCapsuleAppData *v1 = v0->unk_08;
     FieldSystem *fieldSystem = FieldTask_GetFieldSystem(param0);
 
     switch (v0->unk_14) {
@@ -413,8 +413,8 @@ void sub_020980DC(FieldTask *param0, SaveData *saveData)
 
     memset(v0, 0, sizeof(UnkStruct_02097F38));
     v0->saveData = saveData;
-    v0->unk_08 = Heap_Alloc(HEAP_ID_FIELD2, sizeof(UnkStruct_02097F18));
-    memset(v0->unk_08, 0, sizeof(UnkStruct_02097F18));
+    v0->unk_08 = Heap_Alloc(HEAP_ID_FIELD2, sizeof(BallCapsuleAppData));
+    memset(v0->unk_08, 0, sizeof(BallCapsuleAppData));
     v0->unk_08->options = SaveData_GetOptions(saveData);
     v0->unk_08->saveData = saveData;
     v0->partyMenu = Heap_Alloc(HEAP_ID_FIELD2, sizeof(PartyMenu));

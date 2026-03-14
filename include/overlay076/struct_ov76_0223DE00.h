@@ -89,7 +89,7 @@ typedef struct {
 } PlacedSeal;
 
 typedef struct {
-    ManagedSprite *unk_00[13];
+    ManagedSprite *unk_00[BALL_CAPSULE_BUTTON_MAX];
 } BallCapsuleEditorSprites;
 
 typedef struct {
@@ -99,7 +99,7 @@ typedef struct {
     SpriteManager *unk_0C;
     BgConfig *unk_10;
     PaletteData *unk_14;
-    Window unk_18[11];
+    Window unk_18[BALL_CAPSULE_WINDOW_MAX];
     StringList *unk_C8;
     Menu *unk_CC;
     PokemonSpriteManager *unk_D0;
@@ -107,7 +107,7 @@ typedef struct {
     int unk_D8;
     UnkStruct_ov22_02258A48 unk_DC;
     TouchScreenActions *unk_F8;
-    TouchScreenRect unk_FC[21];
+    TouchScreenRect unk_FC[BALL_CAPSULE_BUTTON_PLACED_SEAL_MAX];
     UnkStruct_02015920 *unk_150;
     UnkStruct_ov12_02235FE0 *unk_154;
     BallRotation *unk_158;
@@ -118,7 +118,7 @@ typedef struct {
     BOOL unk_184;
     PokemonAnimManager *unk_188;
     BOOL unk_18C;
-} UnkStruct_ov76_0223C398;
+} BallCapsuleEditor;
 
 typedef struct {
     int unk_00;
@@ -134,38 +134,42 @@ typedef struct {
 typedef struct {
     int unk_00;
     int unk_04;
-    u8 unk_08[8];
+    u8 unk_08[SEALS_PER_PAGE];
 } SealCasePages;
 
 typedef struct {
-    UnkStruct_02097F18 *unk_00;
-    BallCapsuleData unk_04[TOTAL_CAPSULES];
-    SealCounts *unk_64;
-    BallCapsule unk_68;
-    u8 unk_80[SEAL_ID_MAX];
+    BallCapsuleAppData *appData;
+    BallCapsuleData capsuleData[TOTAL_CAPSULES];
+    SealCounts *sealCounts;
+    BallCapsule selectedCapsule;
+    u8 currentSealCounts[SEAL_ID_MAX];
     u8 padding_D1[3];
 
-    UnkStruct_ov76_0223C398 unk_D4;
+    BallCapsuleEditor ballCapsuleEditor;
 
-    BallCapsuleEditData unk_264[TOTAL_CAPSULES];
+    BallCapsuleEditData editData[TOTAL_CAPSULES];
 
     ManagedSprite *unk_2F4[2];
-    ManagedSprite *unk_2FC[MAX_PARTY_SIZE];
+    ManagedSprite *partyIcons[MAX_PARTY_SIZE];
     ManagedSprite *unk_314[4];
 
-    PlacedSeal unk_324[SEALS_PER_CAPSULE];
-    int unk_3A4[SEALS_PER_CAPSULE];
-    int unk_3C4[2];
+    PlacedSeal placedSeals[SEALS_PER_CAPSULE];
+
+    // unused
+    int unk_3A4[8];
+
+    // Second element is only used for "shift" feature
+    int selectedCapsules[2];
     int unk_3CC;
     u8 padding_3D0[4];
     int unk_3D4;
     int unk_3D8;
     int unk_3DC;
     int unk_3E0;
-    BallCapsuleEditorSprites unk_3E4;
-    SealCasePages unk_418;
-    Pokemon *unk_428;
-    NARC *unk_42C;
+    BallCapsuleEditorSprites editorSprites;
+    SealCasePages sealCasePages;
+    Pokemon *mon;
+    NARC *narc;
 } BallCapsuleSystem;
 
 #endif // POKEPLATINUM_STRUCT_OV76_0223DE00_H

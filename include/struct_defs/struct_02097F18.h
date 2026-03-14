@@ -18,6 +18,6 @@ typedef struct {
     u8 unk_2C;
     u8 unk_2D;
     u8 padding[2];
-} UnkStruct_02097F18;
+} BallCapsuleAppData;
 
 #endif // POKEPLATINUM_STRUCT_02097F18_H
