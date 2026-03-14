@@ -7,7 +7,6 @@
 #include "struct_defs/seal_case.h"
 
 #include "battle_anim/ov12_02237E54.h"
-#include "overlay076/struct_ov76_0223B52C.h"
 #include "overlay076/struct_ov76_0223DE00.h"
 
 #include "game_overlay.h"

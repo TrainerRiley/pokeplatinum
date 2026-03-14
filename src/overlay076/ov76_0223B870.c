@@ -11,8 +11,6 @@
 #include "battle_anim/battle_anim_helpers.h"
 #include "overlay076/const_ov76_0223EF3C.h"
 #include "overlay076/ov76_0223D338.h"
-#include "overlay076/struct_ov76_0223BBAC.h"
-#include "overlay076/struct_ov76_0223C398.h"
 #include "overlay076/struct_ov76_0223DE00.h"
 
 #include "bg_window.h"
