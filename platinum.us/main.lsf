@@ -1273,7 +1273,7 @@ Overlay overlay75
 	Object main.nef.p/src_overlay075_ov75_021D0D80.c.o
 }
 
-Overlay overlay76
+Overlay ball_capsule
 {
 	After battle_anim
 	Object main.nef.p/src_overlay076_ov76_0223B140.c.o

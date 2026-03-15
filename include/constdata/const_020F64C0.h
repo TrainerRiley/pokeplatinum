@@ -1,6 +1,6 @@
 #ifndef POKEPLATINUM_CONST_020F64C0_H
 #define POKEPLATINUM_CONST_020F64C0_H
 
-extern const ApplicationManagerTemplate Unk_020F64C0;
+extern const ApplicationManagerTemplate gBallCapsuleSystemAppTemplate;
 
 #endif // POKEPLATINUM_CONST_020F64C0_H

@@ -770,7 +770,7 @@ static void ov12_022365D4(SPLEmitter *param0)
 
         v4 = BallSeal_GetSealType(v3->unk_14);
 
-        if (sub_020981AC(v4) == 1) {
+        if (SealData_IsCharSeal(v4) == 1) {
             v5 = BallSeal_GetX(v3->unk_14);
             v6 = BallSeal_GetY(v3->unk_14);
             v7 = (v5 - 190);

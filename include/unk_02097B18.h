@@ -7,17 +7,17 @@
 #include "pokemon.h"
 #include "savedata.h"
 
-Pokemon *sub_02097F00(BallCapsuleAppData *param0, int param1);
-u8 sub_02097F18(BallCapsuleAppData *param0);
-void sub_02097F20(BallCapsuleAppData *param0, u8 param1);
-u8 sub_02097F28(BallCapsuleAppData *param0);
-void sub_02097F30(BallCapsuleAppData *param0, u8 param1);
-void sub_020980DC(FieldTask *param0, SaveData *saveData);
+Pokemon *BallCapsuleAppData_GetPokemon(BallCapsuleAppData *appData, int param1);
+u8 BallCapsuleAppData_GetSelectedCapsuleIndex(BallCapsuleAppData *appData);
+void BallCapsuleAppData_SetSelectedCapsuleIndex(BallCapsuleAppData *appData, u8 param1);
+u8 sub_02097F28(BallCapsuleAppData *appData);
+void sub_02097F30(BallCapsuleAppData *appData, u8 param1);
+void BeginCapsuleEditorTask(FieldTask *param0, SaveData *saveData);
 int sub_02098140(u8 param0);
-int sub_02098164(u8 param0);
+int SealData_GetNameID(u8 param0);
 int sub_02098188(u8 param0);
-int sub_020981AC(u8 param0);
-int sub_020981D0(u8 param0);
-int sub_020981F4(u8 param0);
+int SealData_IsCharSeal(u8 param0);
+int SealData_GetPrice(u8 param0);
+int SealData_GetDescriptionMessageID(u8 param0);
 
 #endif // POKEPLATINUM_UNK_02097B18_H

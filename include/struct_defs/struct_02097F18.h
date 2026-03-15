@@ -9,13 +9,13 @@
 #include "savedata.h"
 
 typedef struct {
-    int unk_00;
-    Pokemon *unk_04[6];
-    Party *unk_1C;
-    SealCase *unk_20;
+    int partyCount;
+    Pokemon *mons[6];
+    Party *party;
+    SealCase *sealCase;
     Options *options;
     SaveData *saveData;
-    u8 unk_2C;
+    u8 selectedCapsule;
     u8 unk_2D;
     u8 padding[2];
 } BallCapsuleAppData;

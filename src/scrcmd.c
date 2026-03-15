@@ -3216,7 +3216,7 @@ static BOOL ScrCmd_310(ScriptContext *ctx)
 
 static BOOL ScrCmd_OpenSealCapsuleEditor(ScriptContext *ctx)
 {
-    sub_020980DC(ctx->task, ctx->fieldSystem->saveData);
+    BeginCapsuleEditorTask(ctx->task, ctx->fieldSystem->saveData);
     return TRUE;
 }
 

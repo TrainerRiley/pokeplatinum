@@ -31,6 +31,7 @@
 #include "pokemon_icon.h"
 #include "render_window.h"
 #include "screen_fade.h"
+#include "seals.h"
 #include "sprite.h"
 #include "sprite_system.h"
 #include "string_gf.h"
@@ -53,25 +54,18 @@ typedef struct {
 } UnkStruct_ov76_0223BCA0;
 
 void ov76_0223BF74(BgConfig *param0, Window *param1, int param2, BallCapsuleSystem *ballCapsuleSys, int param4);
-void GetCapsulePosition(int param0, s16 *param1, s16 *param2);
 void ov76_0223C110(BallCapsuleSystem *ballCapsuleSys);
-void BallCapsuleSystem_LoadPartyIcons(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223C288(BallCapsuleSystem *ballCapsuleSys);
-void BallCapsuleSystem_UpdatePartyIcons(BallCapsuleSystem *ballCapsuleSys);
-void BallCapsuleSystem_DeletePartyIcons(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223C354(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223C398(BallCapsuleEditor *ballCapsuleEditor);
 void ov76_0223C424(BallCapsuleEditor *ballCapsuleEditor);
 void ov76_0223C5A4(SpriteSystem *param0, SpriteManager *param1, PaletteData *param2, int param3, int param4, int param5, int param6, int param7, int param8, int param9, NARC *param10);
 void ov76_0223C61C(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
 void ov76_0223C7E0(BallCapsuleSystem *ballCapsuleSys);
-void BallCapsuleSys_SwapCapsules(BallCapsuleSystem *ballCapsuleSys, int param1, int param2);
 void ov76_0223C88C(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223C8BC(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223C8EC(BgConfig *param0, PaletteData *param1, int param2);
 void ov76_0223C974(BgConfig *param0, PaletteData *param1, int param2);
-void Window_SetMessage(Window *param0, int param1);
-void CreateBasicWindow(BgConfig *param0, Window *param1, int param2, int param3, int param4, int param5, int param6, int param7);
 void ov76_0223CB58(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223CDA4(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223CDC4(Window *param0, int param1);
@@ -86,16 +80,18 @@ void ov76_0223D16C(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223D318(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223D31C(BallCapsuleSystem *ballCapsuleSys);
 
-static void ov76_0223B870(TouchScreenRect *rect, ManagedSprite *param1, int param2, int param3)
+// This sets the rect dimensions to be 2x the given width and height,
+// centered at the sprite's position.
+static void Rect_SetDimensions(TouchScreenRect *rect, ManagedSprite *sprite, int width, int height)
 {
-    s16 v0, v1;
+    s16 x, y;
 
-    ManagedSprite_GetPositionXY(param1, &v0, &v1);
+    ManagedSprite_GetPositionXY(sprite, &x, &y);
 
-    rect->rect.top = v1 - param3;
-    rect->rect.bottom = v1 + param3;
-    rect->rect.left = v0 - param2;
-    rect->rect.right = v0 + param2;
+    rect->rect.top = y - height;
+    rect->rect.bottom = y + height;
+    rect->rect.left = x - width;
+    rect->rect.right = x + width;
 }
 
 void ov76_0223B8A8(BallCapsuleSystem *ballCapsuleSys)
@@ -174,46 +170,44 @@ void ov76_0223B98C(BallCapsuleSystem *ballCapsuleSys, int param1, int param2, in
     Window_Remove(&v5);
 }
 
-void BallCapsuleSystem_LoadCurrentPageSeals(BallCapsuleSystem *ballCapsuleSys, int param1)
+void BallCapsuleSystem_LoadCurrentPageSeals(BallCapsuleSystem *ballCapsuleSys, int pageIndex)
 {
-    int v0, v1;
-    int v2;
-    int v3;
-    int v4;
-    BOOL v5;
-    int v6;
+    int sealsOnPage = 0;
+    int totalSeals = 0;
+    int firstPageEntry = pageIndex;
+    firstPageEntry *= SEALS_PER_PAGE;
 
-    v2 = 0;
-    v3 = 0;
-    v4 = param1;
-    v4 *= 8;
-
-    for (v0 = 0; v0 < 8; v0++) {
-        ballCapsuleSys->sealCasePages.currentPageSeals[v0] = 0;
+    int i;
+    for (i = 0; i < SEALS_PER_PAGE; i++) {
+        ballCapsuleSys->sealCasePages.currentPageSeals[i] = 0;
     }
 
-    for (v0 = 0; v0 < (80 + 1); v0++) {
-        for (v1 = 0; v1 < 12; v1++) {
-            v5 = SealIsOnCapsule(ballCapsuleSys->capsuleData[v1].ballCapsule, v0);
+    for (i = 0; i < (SEAL_ID_MAX); i++) {
+        BOOL containsSeal;
+        for (int j = 0; j < TOTAL_CAPSULES; j++) {
+            containsSeal = SealIsOnCapsule(ballCapsuleSys->capsuleData[j].ballCapsule, i);
 
-            if (v5) {
+            if (containsSeal) {
                 break;
             }
         }
 
-        v6 = ballCapsuleSys->currentSealCounts[v0];
+        int sealCount = ballCapsuleSys->currentSealCounts[i];
 
-        if ((v6 != 0) || (v5 == 1)) {
-            v3++;
+        // Include this seal in the list of seals if it has more than one seal
+        // OR if the seal is currently on a capsule
+        if ((sealCount != 0) || (containsSeal == TRUE)) {
+            totalSeals++;
 
-            if (v3 <= v4) {
+            // Skip all seals until we get to the requested page
+            if (totalSeals <= firstPageEntry) {
                 continue;
             }
 
-            ballCapsuleSys->sealCasePages.currentPageSeals[v2] = (v0 + 1);
-            v2++;
+            ballCapsuleSys->sealCasePages.currentPageSeals[sealsOnPage] = (i + 1);
+            sealsOnPage++;
 
-            if (v2 >= 8) {
+            if (sealsOnPage >= SEALS_PER_PAGE) {
                 break;
             }
         }
@@ -339,7 +333,7 @@ void ov76_0223BD30(BallCapsuleSystem *ballCapsuleSys, s8 param1, int param2)
         s16 v2, v3;
 
         for (v1 = 0; v1 < 8; v1++) {
-            if (ballCapsuleSys->placedSeals[v1].tapped == 0) {
+            if (ballCapsuleSys->placedSeals[v1].tapped == FALSE) {
                 v0->unk_144[v1] = NULL;
                 continue;
             }
@@ -539,8 +533,8 @@ void BallCapsuleSystem_LoadPartyIcons(BallCapsuleSystem *ballCapsuleSys)
     Pokemon *v5;
     SpriteTemplate v6;
 
-    for (v0 = 0; v0 < ballCapsuleSys->appData->unk_00; v0++) {
-        v5 = ballCapsuleSys->appData->unk_04[v0];
+    for (v0 = 0; v0 < ballCapsuleSys->appData->partyCount; v0++) {
+        v5 = ballCapsuleSys->appData->mons[v0];
 
         SpriteSystem_LoadCharResObjAtEndWithHardwareMappingType(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, NARC_INDEX_POKETOOL__ICONGRA__PL_POKE_ICON, Pokemon_IconSpriteIndex(v5), FALSE, NNS_G2D_VRAM_TYPE_2DMAIN, v0 + 15000);
 
@@ -578,14 +572,14 @@ void ov76_0223C288(BallCapsuleSystem *ballCapsuleSys)
     int v1;
     s16 v2, v3;
 
-    for (v0 = 0; v0 < ballCapsuleSys->appData->unk_00; v0++) {
+    for (v0 = 0; v0 < ballCapsuleSys->appData->partyCount; v0++) {
         ManagedSprite_SetDrawFlag(ballCapsuleSys->partyIcons[v0], 0);
     }
 
     for (v0 = 0; v0 < 12; v0++) {
         v1 = ballCapsuleSys->capsuleData[v0].partyIndex;
 
-        if (v1 != 0xff) {
+        if (v1 != BALL_CAPSULE_INVALID_PARTY_INDEX) {
             GetCapsulePosition(v0, &v2, &v3);
             ManagedSprite_SetPositionXY(ballCapsuleSys->partyIcons[v1], v2 + -16, v3 + (+12));
             ManagedSprite_SetDrawFlag(ballCapsuleSys->partyIcons[v1], 1);
@@ -597,7 +591,7 @@ void BallCapsuleSystem_UpdatePartyIcons(BallCapsuleSystem *ballCapsuleSys)
 {
     int v0;
 
-    for (v0 = 0; v0 < ballCapsuleSys->appData->unk_00; v0++) {
+    for (v0 = 0; v0 < ballCapsuleSys->appData->partyCount; v0++) {
         ManagedSprite_TickFrame(ballCapsuleSys->partyIcons[v0]);
     }
 }
@@ -607,7 +601,7 @@ void BallCapsuleSystem_DeletePartyIcons(BallCapsuleSystem *ballCapsuleSys)
     int v0;
     int v1;
 
-    for (v0 = 0; v0 < ballCapsuleSys->appData->unk_00; v0++) {
+    for (v0 = 0; v0 < ballCapsuleSys->appData->partyCount; v0++) {
         Sprite_DeleteAndFreeResources(ballCapsuleSys->partyIcons[v0]);
     }
 }
@@ -624,7 +618,7 @@ void ov76_0223C354(BallCapsuleSystem *ballCapsuleSys)
         ballCapsuleSys->editData[v0].hasSeals = BallCapsule_ContainsSeals(v3);
         ballCapsuleSys->editData[v0].partyIndex = ballCapsuleSys->capsuleData[v0].partyIndex;
 
-        if ((ballCapsuleSys->editData[v0].hasSeals == 0) && (ballCapsuleSys->editData[v0].partyIndex != 0xff)) {
+        if ((ballCapsuleSys->editData[v0].hasSeals == 0) && (ballCapsuleSys->editData[v0].partyIndex != BALL_CAPSULE_INVALID_PARTY_INDEX)) {
             BallCapsuleSystem_UnsetCapsule(ballCapsuleSys, v0);
         }
     }
@@ -850,14 +844,14 @@ void BallCapsuleSys_SwapCapsules(BallCapsuleSystem *ballCapsuleSys, int param1, 
     v1 = ballCapsuleSys->capsuleData[param1].partyIndex;
     v2 = ballCapsuleSys->capsuleData[param2].partyIndex;
 
-    if (v1 != 0xff) {
+    if (v1 != BALL_CAPSULE_INVALID_PARTY_INDEX) {
         v3 = param2 + 1;
-        Pokemon_SetValue(ballCapsuleSys->appData->unk_04[v1], MON_DATA_BALL_CAPSULE_ID, (u8 *)&v3);
+        Pokemon_SetValue(ballCapsuleSys->appData->mons[v1], MON_DATA_BALL_CAPSULE_ID, (u8 *)&v3);
     }
 
-    if (v2 != 0xff) {
+    if (v2 != BALL_CAPSULE_INVALID_PARTY_INDEX) {
         v4 = param1 + 1;
-        Pokemon_SetValue(ballCapsuleSys->appData->unk_04[v2], MON_DATA_BALL_CAPSULE_ID, (u8 *)&v4);
+        Pokemon_SetValue(ballCapsuleSys->appData->mons[v2], MON_DATA_BALL_CAPSULE_ID, (u8 *)&v4);
     }
 
     v0 = ballCapsuleSys->capsuleData[param1].partyIndex;
@@ -1228,7 +1222,7 @@ void ov76_0223D16C(BallCapsuleSystem *ballCapsuleSys)
             ManagedSprite_SetPositionXY(ballCapsuleSys->editorSprites.sprites[v0], v6[v0][0], v6[v0][1]);
             ManagedSprite_TickFrame(ballCapsuleSys->editorSprites.sprites[v0]);
             ManagedSprite_SetAnimationFrame(ballCapsuleSys->editorSprites.sprites[v0], 0);
-            ov76_0223B870(&ballCapsuleSys->ballCapsuleEditor.buttonRects[v0], ballCapsuleSys->editorSprites.sprites[v0], v7[v0][0], v7[v0][1]);
+            Rect_SetDimensions(&ballCapsuleSys->ballCapsuleEditor.buttonRects[v0], ballCapsuleSys->editorSprites.sprites[v0], v7[v0][0], v7[v0][1]);
         }
     }
 }

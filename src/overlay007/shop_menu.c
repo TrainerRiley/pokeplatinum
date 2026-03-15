@@ -625,7 +625,7 @@ static u32 Shop_GetItemId(ShopMenu *shopMenu, u16 itemId)
     if (shopMenu->martType == MART_TYPE_DECOR) {
         return itemId;
     } else if (shopMenu->martType == MART_TYPE_SEAL) {
-        return sub_02098164(itemId);
+        return SealData_GetNameID(itemId);
     }
 
     return itemId;
@@ -724,7 +724,7 @@ static void Shop_MenuCursorCallback(ListMenu *menu, u32 index, u8 onInit)
             MessageLoader *loader;
 
             loader = MessageLoader_Init(MSG_LOADER_PRELOAD_ENTIRE_BANK, NARC_INDEX_MSGDATA__PL_MSG, TEXT_BANK_UNK_0542, HEAP_ID_FIELD2);
-            string = MessageLoader_GetNewString(loader, sub_020981F4(index));
+            string = MessageLoader_GetNewString(loader, SealData_GetDescriptionMessageID(index));
 
             MessageLoader_Free(loader);
         }
@@ -1180,9 +1180,9 @@ static u8 Shop_SelectConfirmPurchase(ShopMenu *shopMenu)
                 string = MessageLoader_GetNewString(shopMenu->msgLoader, pl_msg_00000543_00011);
             } else {
                 if (shopMenu->itemAmount == 1) {
-                    StringTemplate_SetBallSealName(shopMenu->strTemplate, 0, sub_02098164(shopMenu->itemId));
+                    StringTemplate_SetBallSealName(shopMenu->strTemplate, 0, SealData_GetNameID(shopMenu->itemId));
                 } else {
-                    StringTemplate_SetBallSealNamePlural(shopMenu->strTemplate, 0, sub_02098164(shopMenu->itemId));
+                    StringTemplate_SetBallSealNamePlural(shopMenu->strTemplate, 0, SealData_GetNameID(shopMenu->itemId));
                 }
 
                 string = MessageLoader_GetNewString(shopMenu->msgLoader, pl_msg_00000543_00013);
@@ -1318,7 +1318,7 @@ static void Shop_SetItemNameToIndex(ShopMenu *shopMenu, u16 itemId, u16 idx)
     } else if (shopMenu->martType == MART_TYPE_DECOR) {
         StringTemplate_SetUndergroundGoodsName(shopMenu->strTemplate, idx, itemId);
     } else {
-        StringTemplate_SetBallSealName(shopMenu->strTemplate, idx, sub_02098164(itemId));
+        StringTemplate_SetBallSealName(shopMenu->strTemplate, idx, SealData_GetNameID(itemId));
     }
 }
 
@@ -1332,7 +1332,7 @@ static u32 Shop_GetItemPrice(ShopMenu *shopMenu, u16 itemId)
         return Good_GetMoneyPrice(itemId);
     }
 
-    return sub_020981D0(itemId);
+    return SealData_GetPrice(itemId);
 }
 
 static u16 Shop_GetItemBPPrice(ShopMenu *shopMenu, u16 itemId)

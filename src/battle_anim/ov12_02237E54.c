@@ -47,7 +47,7 @@ int ov12_02237EA0(BallSeal *param0)
     };
 
     v3 = BallSeal_GetSealType(param0);
-    v0 = sub_020981AC(v3);
+    v0 = SealData_IsCharSeal(v3);
 
     if (v0 == 0) {
         v2 = ov12_02237E80(param0);
