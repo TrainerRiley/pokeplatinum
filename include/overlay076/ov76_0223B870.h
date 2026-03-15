@@ -16,7 +16,7 @@ void ov76_0223B940(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223B96C(BallCapsuleSystem *ballCapsuleSys, BOOL param1);
 void ov76_0223B98C(BallCapsuleSystem *ballCapsuleSys, int param1, int param2, int param3, int param4);
 void BallCapsuleSystem_LoadCurrentPageSeals(BallCapsuleSystem *ballCapsuleSys, int param1);
-void ov76_0223BB04(BallCapsuleSystem *ballCapsuleSys);
+void BallCapsuleSystem_LoadCurrentPageData(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223BBAC(BallCapsuleSystem *ballCapsuleSys);
 void BallCapsuleSystem_UnloadEditorSprites(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223BD30(BallCapsuleSystem *ballCapsuleSys, s8 param1, int param2);

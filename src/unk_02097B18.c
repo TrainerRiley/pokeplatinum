@@ -432,7 +432,7 @@ void BeginCapsuleEditorTask(FieldTask *fieldTask, SaveData *saveData)
 }
 
 typedef struct {
-    u16 unk_00;
+    u16 charID;
     u8 nameID;
     u8 unused_03;
     u8 unk_04;
@@ -525,10 +525,10 @@ static const SealData sealData[SEAL_ID_MAX] = {
     { 0x108, 0x50, 0x125, 0x74, 0x0, 0x0, 0x33 }
 };
 
-int sub_02098140(u8 sealID)
+int SealData_GetCharID(u8 sealID)
 {
     GF_ASSERT(sealID < (sizeof(sealData)));
-    return sealData[sealID].unk_00;
+    return sealData[sealID].charID;
 }
 
 int SealData_GetNameID(u8 sealID)

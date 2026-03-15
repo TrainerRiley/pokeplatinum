@@ -13,7 +13,7 @@ void BallCapsuleAppData_SetSelectedCapsuleIndex(BallCapsuleAppData *appData, u8 
 u8 sub_02097F28(BallCapsuleAppData *appData);
 void sub_02097F30(BallCapsuleAppData *appData, u8 param1);
 void BeginCapsuleEditorTask(FieldTask *param0, SaveData *saveData);
-int sub_02098140(u8 param0);
+int SealData_GetCharID(u8 param0);
 int SealData_GetNameID(u8 param0);
 int sub_02098188(u8 param0);
 int SealData_IsCharSeal(u8 param0);

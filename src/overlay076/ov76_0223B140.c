@@ -172,7 +172,7 @@ void ov76_0223B36C(BallCapsuleSystem *ballCapsuleSys, u8 param1, u8 param2)
 
     SpriteSystem_LoadPaletteBuffer(v4, 3, v2, v3, 91, 293, 0, 1, NNS_G2D_VRAM_TYPE_2DSUB, 21000 + 293);
 
-    int v0 = sub_02098140(param1);
+    int v0 = SealData_GetCharID(param1);
     int v1 = (param2 + 20000);
 
     SpriteSystem_LoadCharResObj(v2, v3, NARC_INDEX_APPLICATION__CUSTOM_BALL__DATA__CB_DATA, v0, TRUE, NNS_G2D_VRAM_TYPE_2DSUB, v1);
@@ -283,7 +283,7 @@ BOOL ov76_0223B52C(BallCapsuleSystem *ballCapsuleSys, u8 param1)
     v3.resources[4] = SPRITE_RESOURCE_NONE;
     v3.resources[5] = SPRITE_RESOURCE_NONE;
 
-    v0 = sub_02098140(v2->type);
+    v0 = SealData_GetCharID(v2->type);
     v1 = (param1 + 20000);
 
     v3.resources[0] = v1;
@@ -388,7 +388,7 @@ void ov76_0223B704(BallCapsuleSystem *ballCapsuleSys, int param1)
     int v0;
     int v1;
 
-    v0 = sub_02098140(ballCapsuleSys->placedSeals[param1].type);
+    v0 = SealData_GetCharID(ballCapsuleSys->placedSeals[param1].type);
     v1 = (param1 + 20000);
 
     SpriteManager_UnloadCharObjById(ballCapsuleSys->ballCapsuleEditor.spriteMan, v1);

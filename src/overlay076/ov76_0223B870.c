@@ -214,56 +214,55 @@ void BallCapsuleSystem_LoadCurrentPageSeals(BallCapsuleSystem *ballCapsuleSys, i
     }
 }
 
-void ov76_0223BB04(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_LoadCurrentPageData(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-    int v1;
-    SpriteSystem *v2 = ballCapsuleSys->ballCapsuleEditor.spriteSys;
-    SpriteManager *v3 = ballCapsuleSys->ballCapsuleEditor.spriteMan;
-    PaletteData *v4 = ballCapsuleSys->ballCapsuleEditor.paletteData;
+    int i;
+    SpriteSystem *spriteSys = ballCapsuleSys->ballCapsuleEditor.spriteSys;
+    SpriteManager *spriteMan = ballCapsuleSys->ballCapsuleEditor.spriteMan;
+    PaletteData *paletteData = ballCapsuleSys->ballCapsuleEditor.paletteData;
 
-    for (v0 = 0; v0 < 8; v0++) {
-        v1 = sub_02098140(ballCapsuleSys->sealCasePages.currentPageSeals[v0]);
-        SpriteSystem_LoadCharResObj(v2, v3, NARC_INDEX_APPLICATION__CUSTOM_BALL__DATA__CB_DATA, v1, TRUE, NNS_G2D_VRAM_TYPE_2DSUB, v0 + 25000);
+    for (i = 0; i < SEALS_PER_PAGE; i++) {
+        int charID = SealData_GetCharID(ballCapsuleSys->sealCasePages.currentPageSeals[i]);
+        SpriteSystem_LoadCharResObj(spriteSys, spriteMan, NARC_INDEX_APPLICATION__CUSTOM_BALL__DATA__CB_DATA, charID, TRUE, NNS_G2D_VRAM_TYPE_2DSUB, i + 25000);
     }
 
-    SpriteSystem_LoadPaletteBuffer(v4, PLTTBUF_SUB_OBJ, v2, v3, 91, 293, FALSE, 1, NNS_G2D_VRAM_TYPE_2DSUB, 26000 + 292);
-    SpriteSystem_LoadCellResObj(v2, v3, NARC_INDEX_APPLICATION__CUSTOM_BALL__DATA__CB_DATA, 180, TRUE, 27000 + 180);
-    SpriteSystem_LoadAnimResObj(v2, v3, NARC_INDEX_APPLICATION__CUSTOM_BALL__DATA__CB_DATA, 88, TRUE, 28000 + 88);
+    SpriteSystem_LoadPaletteBuffer(paletteData, PLTTBUF_SUB_OBJ, spriteSys, spriteMan, 91, 293, FALSE, 1, NNS_G2D_VRAM_TYPE_2DSUB, 26000 + 292);
+    SpriteSystem_LoadCellResObj(spriteSys, spriteMan, NARC_INDEX_APPLICATION__CUSTOM_BALL__DATA__CB_DATA, 180, TRUE, 27000 + 180);
+    SpriteSystem_LoadAnimResObj(spriteSys, spriteMan, NARC_INDEX_APPLICATION__CUSTOM_BALL__DATA__CB_DATA, 88, TRUE, 28000 + 88);
 }
 
 void ov76_0223BBAC(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
     BallCapsuleEditorSprites *v1;
-    SpriteTemplate v2;
+    SpriteTemplate spriteTemplate;
     SpriteSystem *v3 = ballCapsuleSys->ballCapsuleEditor.spriteSys;
     SpriteManager *v4 = ballCapsuleSys->ballCapsuleEditor.spriteMan;
     PaletteData *v5 = ballCapsuleSys->ballCapsuleEditor.paletteData;
     v1 = &ballCapsuleSys->editorSprites;
 
-    v2.x = 0;
-    v2.y = 0;
-    v2.z = 0;
-    v2.animIdx = 0;
-    v2.priority = 60;
-    v2.vramType = NNS_G2D_VRAM_TYPE_2DSUB;
-    v2.bgPriority = 1;
-    v2.vramTransfer = FALSE;
-    v2.resources[4] = SPRITE_RESOURCE_NONE;
-    v2.resources[5] = SPRITE_RESOURCE_NONE;
-    v2.plttIdx = 0;
-    v2.resources[1] = 26000 + 292;
-    v2.resources[2] = 27000 + 180;
-    v2.resources[3] = 28000 + 88;
+    spriteTemplate.x = 0;
+    spriteTemplate.y = 0;
+    spriteTemplate.z = 0;
+    spriteTemplate.animIdx = 0;
+    spriteTemplate.priority = 60;
+    spriteTemplate.vramType = NNS_G2D_VRAM_TYPE_2DSUB;
+    spriteTemplate.bgPriority = 1;
+    spriteTemplate.vramTransfer = FALSE;
+    spriteTemplate.resources[4] = SPRITE_RESOURCE_NONE;
+    spriteTemplate.resources[5] = SPRITE_RESOURCE_NONE;
+    spriteTemplate.plttIdx = 0;
+    spriteTemplate.resources[1] = 26000 + 292;
+    spriteTemplate.resources[2] = 27000 + 180;
+    spriteTemplate.resources[3] = 28000 + 88;
 
-    for (v0 = 0; v0 < 8; v0++) {
-        v2.resources[0] = (v0 + 25000);
-        v1->sprites[v0] = SpriteSystem_NewSprite(v3, v4, &v2);
+    int i;
+    for (i = 0; i < SEALS_PER_PAGE; i++) {
+        spriteTemplate.resources[0] = (i + 25000);
+        v1->sprites[i] = SpriteSystem_NewSprite(v3, v4, &spriteTemplate);
     }
 
     {
-        const s16 v6[][2] = {
+        const s16 sealButtonPos[][2] = {
             { 19, 23 },
             { 75, 23 },
             { 19, 47 },
@@ -274,10 +273,10 @@ void ov76_0223BBAC(BallCapsuleSystem *ballCapsuleSys)
             { 75, 95 },
         };
 
-        for (v0 = 0; v0 < 8; v0++) {
-            ManagedSprite_SetPositionXY(ballCapsuleSys->editorSprites.sprites[v0], v6[v0][0], v6[v0][1] - 1);
-            ManagedSprite_TickFrame(ballCapsuleSys->editorSprites.sprites[v0]);
-            ManagedSprite_SetAnimationFrame(ballCapsuleSys->editorSprites.sprites[v0], 0);
+        for (i = 0; i < SEALS_PER_PAGE; i++) {
+            ManagedSprite_SetPositionXY(ballCapsuleSys->editorSprites.sprites[i], sealButtonPos[i][0], sealButtonPos[i][1] - 1);
+            ManagedSprite_TickFrame(ballCapsuleSys->editorSprites.sprites[i]);
+            ManagedSprite_SetAnimationFrame(ballCapsuleSys->editorSprites.sprites[i], 0);
         }
     }
 }
