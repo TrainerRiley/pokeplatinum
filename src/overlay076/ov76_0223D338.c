@@ -323,7 +323,7 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
         BallCapsuleSystem_LoadSealCounts(ballCapsuleSys);
         BallCapsuleSystem_LoadCurrentPageSeals(ballCapsuleSys, ballCapsuleSys->sealCasePages.currentPage);
         BallCapsuleSystem_LoadCurrentPageData(ballCapsuleSys);
-        ov76_0223BBAC(ballCapsuleSys);
+        BallCapsuleSystem_CreatePageSprites(ballCapsuleSys);
         ov76_0223D2F4(ballCapsuleSys, 0);
         ov76_0223C568(ballCapsuleSys, 0);
         ov76_0223B940(ballCapsuleSys);
@@ -525,7 +525,7 @@ void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
             BallCapsuleSystem_UnloadEditorSprites(ballCapsuleSys);
             BallCapsuleSystem_LoadCurrentPageSeals(ballCapsuleSys, ballCapsuleSys->sealCasePages.currentPage);
             BallCapsuleSystem_LoadCurrentPageData(ballCapsuleSys);
-            ov76_0223BBAC(ballCapsuleSys);
+            BallCapsuleSystem_CreatePageSprites(ballCapsuleSys);
             ov76_0223CC8C(ballCapsuleSys);
             Sound_PlayEffect(SEQ_SE_DP_CUSTOM02);
         }
@@ -540,7 +540,7 @@ void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
             BallCapsuleSystem_UnloadEditorSprites(ballCapsuleSys);
             BallCapsuleSystem_LoadCurrentPageSeals(ballCapsuleSys, ballCapsuleSys->sealCasePages.currentPage);
             BallCapsuleSystem_LoadCurrentPageData(ballCapsuleSys);
-            ov76_0223BBAC(ballCapsuleSys);
+            BallCapsuleSystem_CreatePageSprites(ballCapsuleSys);
             ov76_0223CC8C(ballCapsuleSys);
             Sound_PlayEffect(SEQ_SE_DP_CUSTOM02);
         }

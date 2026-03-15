@@ -45,14 +45,6 @@
 #include "unk_0202C9F4.h"
 #include "unk_02097B18.h"
 
-typedef struct {
-    XYTransformContext unk_00[9];
-    ManagedSprite *unk_144[8];
-    BgConfig *unk_164;
-    int unk_168;
-    BOOL *unk_16C;
-} UnkStruct_ov76_0223BCA0;
-
 void ov76_0223BF74(BgConfig *param0, Window *param1, int param2, BallCapsuleSystem *ballCapsuleSys, int param4);
 void ov76_0223C110(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223C288(BallCapsuleSystem *ballCapsuleSys);
@@ -231,14 +223,14 @@ void BallCapsuleSystem_LoadCurrentPageData(BallCapsuleSystem *ballCapsuleSys)
     SpriteSystem_LoadAnimResObj(spriteSys, spriteMan, NARC_INDEX_APPLICATION__CUSTOM_BALL__DATA__CB_DATA, 88, TRUE, 28000 + 88);
 }
 
-void ov76_0223BBAC(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_CreatePageSprites(BallCapsuleSystem *ballCapsuleSys)
 {
-    BallCapsuleEditorSprites *v1;
+    BallCapsuleEditorSprites *editorSprites;
     SpriteTemplate spriteTemplate;
-    SpriteSystem *v3 = ballCapsuleSys->ballCapsuleEditor.spriteSys;
-    SpriteManager *v4 = ballCapsuleSys->ballCapsuleEditor.spriteMan;
-    PaletteData *v5 = ballCapsuleSys->ballCapsuleEditor.paletteData;
-    v1 = &ballCapsuleSys->editorSprites;
+    SpriteSystem *spriteSys = ballCapsuleSys->ballCapsuleEditor.spriteSys;
+    SpriteManager *spriteMan = ballCapsuleSys->ballCapsuleEditor.spriteMan;
+    PaletteData *paletteData = ballCapsuleSys->ballCapsuleEditor.paletteData;
+    editorSprites = &ballCapsuleSys->editorSprites;
 
     spriteTemplate.x = 0;
     spriteTemplate.y = 0;
@@ -258,7 +250,7 @@ void ov76_0223BBAC(BallCapsuleSystem *ballCapsuleSys)
     int i;
     for (i = 0; i < SEALS_PER_PAGE; i++) {
         spriteTemplate.resources[0] = (i + 25000);
-        v1->sprites[i] = SpriteSystem_NewSprite(v3, v4, &spriteTemplate);
+        editorSprites->sprites[i] = SpriteSystem_NewSprite(spriteSys, spriteMan, &spriteTemplate);
     }
 
     {
@@ -283,40 +275,48 @@ void ov76_0223BBAC(BallCapsuleSystem *ballCapsuleSys)
 
 void BallCapsuleSystem_UnloadEditorSprites(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-
-    for (v0 = 0; v0 < 8; v0++) {
-        SpriteManager_UnloadCharObjById(ballCapsuleSys->ballCapsuleEditor.spriteMan, v0 + 25000);
-        Sprite_DeleteAndFreeResources(ballCapsuleSys->editorSprites.sprites[v0]);
+    for (int i = 0; i < SEALS_PER_PAGE; i++) {
+        SpriteManager_UnloadCharObjById(ballCapsuleSys->ballCapsuleEditor.spriteMan, i + 25000);
+        Sprite_DeleteAndFreeResources(ballCapsuleSys->editorSprites.sprites[i]);
     }
 }
+
+typedef struct {
+    XYTransformContext sealCtx[SEALS_PER_CAPSULE + 1];
+    ManagedSprite *sealSprite[SEALS_PER_CAPSULE];
+    BgConfig *bgConfig;
+    int unused_168;
+    BOOL *unk_16C;
+} UnkStruct_ov76_0223BCA0;
 
 static void ov76_0223BCA0(SysTask *param0, void *param1)
 {
     UnkStruct_ov76_0223BCA0 *v0 = (UnkStruct_ov76_0223BCA0 *)param1;
-    BOOL v1 = 0;
+    BOOL stillLerping = 0;
     {
-        int v2;
+        int i;
 
-        for (v2 = 0; v2 < 8; v2++) {
-            if (v0->unk_144[v2] == NULL) {
+        for (i = 0; i < SEALS_PER_CAPSULE; i++) {
+            if (v0->sealSprite[i] == NULL) {
                 continue;
             }
 
-            if (PosLerpContext_UpdateAndApplyToSprite(&v0->unk_00[v2], v0->unk_144[v2]) == 1) {
-                v1 = 1;
+            if (PosLerpContext_UpdateAndApplyToSprite(&v0->sealCtx[i], v0->sealSprite[i]) == TRUE) {
+                stillLerping = TRUE;
             }
         }
 
-        if (PosLerpContext_Update(&v0->unk_00[8]) == 1) {
-            v1 = 1;
-            Bg_SetOffset(v0->unk_164, BG_LAYER_SUB_1, 0, v0->unk_00[8].x);
-            Bg_SetOffset(v0->unk_164, BG_LAYER_SUB_1, 3, v0->unk_00[8].y);
+        // true = still lerping
+        if (PosLerpContext_Update(&v0->sealCtx[SEALS_PER_CAPSULE]) == TRUE) {
+            stillLerping = TRUE;
+            Bg_SetOffset(v0->bgConfig, BG_LAYER_SUB_1, 0, v0->sealCtx[SEALS_PER_CAPSULE].x);
+            Bg_SetOffset(v0->bgConfig, BG_LAYER_SUB_1, 3, v0->sealCtx[SEALS_PER_CAPSULE].y);
         }
     }
 
-    if (v1 == 0) {
-        *(v0->unk_16C) = 0;
+    // lerp is done
+    if (stillLerping == FALSE) {
+        *(v0->unk_16C) = FALSE;
         Heap_Free(v0);
         SysTask_Done(param0);
     }
@@ -325,35 +325,35 @@ static void ov76_0223BCA0(SysTask *param0, void *param1)
 void ov76_0223BD30(BallCapsuleSystem *ballCapsuleSys, s8 param1, int param2)
 {
     UnkStruct_ov76_0223BCA0 *v0 = Heap_Alloc(HEAP_ID_BALL_CAPSULE_SYSTEM, sizeof(UnkStruct_ov76_0223BCA0));
-    v0->unk_164 = ballCapsuleSys->ballCapsuleEditor.bgConfig;
+    v0->bgConfig = ballCapsuleSys->ballCapsuleEditor.bgConfig;
 
     {
-        int v1;
-        s16 v2, v3;
+        int i;
 
-        for (v1 = 0; v1 < 8; v1++) {
-            if (ballCapsuleSys->placedSeals[v1].tapped == FALSE) {
-                v0->unk_144[v1] = NULL;
+        for (int i = 0; i < SEALS_PER_CAPSULE; i++) {
+            if (ballCapsuleSys->placedSeals[i].tapped == FALSE) {
+                v0->sealSprite[i] = NULL;
                 continue;
             }
 
-            v0->unk_144[v1] = ballCapsuleSys->placedSeals[v1].sealSprite;
+            v0->sealSprite[i] = ballCapsuleSys->placedSeals[i].sealSprite;
 
-            ManagedSprite_GetPositionXY(v0->unk_144[v1], &v2, &v3);
-            PosLerpContext_Init(&v0->unk_00[v1], v2, v2 + ((+7 * 8) * param1), v3, v3 + ((-2 * 8) * param1), param2);
-            PosLerpContext_UpdateAndApplyToSprite(&v0->unk_00[v1], v0->unk_144[v1]);
-            PosLerpContext_UpdateAndApplyToSprite(&v0->unk_00[v1], v0->unk_144[v1]);
+            s16 x, y;
+            ManagedSprite_GetPositionXY(v0->sealSprite[i], &x, &y);
+            PosLerpContext_Init(&v0->sealCtx[i], x, x + ((+7 * 8) * param1), y, y + ((-2 * 8) * param1), param2);
+            PosLerpContext_UpdateAndApplyToSprite(&v0->sealCtx[i], v0->sealSprite[i]);
+            PosLerpContext_UpdateAndApplyToSprite(&v0->sealCtx[i], v0->sealSprite[i]);
         }
     }
 
     {
-        int v4 = Bg_GetXOffset(v0->unk_164, 5);
-        int v5 = Bg_GetYOffset(v0->unk_164, 5);
-        PosLerpContext_Init(&v0->unk_00[8], v4, v4 + (((+7 * 8) * param1) * -1), v5, v5 + (((-2 * 8) * param1) * -1), param2);
+        int xOffset = Bg_GetXOffset(v0->bgConfig, 5);
+        int yOffset = Bg_GetYOffset(v0->bgConfig, 5);
+        PosLerpContext_Init(&v0->sealCtx[SEALS_PER_CAPSULE], xOffset, xOffset + (((+7 * 8) * param1) * -1), yOffset, yOffset + (((-2 * 8) * param1) * -1), param2);
     }
 
     v0->unk_16C = &ballCapsuleSys->ballCapsuleEditor.unk_184;
-    *(v0->unk_16C) = 1;
+    *(v0->unk_16C) = TRUE;
 
     SysTask_Start(ov76_0223BCA0, v0, 0x1000);
 }
@@ -495,93 +495,91 @@ void ov76_0223BF74(BgConfig *param0, Window *param1, int param2, BallCapsuleSyst
     ballCapsuleSys->ballCapsuleEditor.menu = Menu_NewAndCopyToVRAM(&v0, 8, 0, 0, HEAP_ID_BALL_CAPSULE_SYSTEM, PAD_BUTTON_B);
 }
 
-void GetCapsulePosition(int param0, s16 *param1, s16 *param2)
+void GetCapsulePosition(int capsuleIndex, s16 *x, s16 *y)
 {
-    int v0 = (param0 % 4);
-    *param1 = 32 + 8 + (v0 * 56);
-    v0 = (param0 >> 2);
-    *param2 = 27 + (v0 * 53);
+    int offset = (capsuleIndex % 4);
+    *x = 32 + 8 + (offset * 56);
+    offset = (capsuleIndex >> 2);
+    *y = 27 + (offset * 53);
 }
 
 void ov76_0223C110(BallCapsuleSystem *ballCapsuleSys)
 {
-    SpriteSystem *v0 = ballCapsuleSys->ballCapsuleEditor.spriteSys;
-    SpriteManager *v1 = ballCapsuleSys->ballCapsuleEditor.spriteMan;
-    PaletteData *v2 = ballCapsuleSys->ballCapsuleEditor.paletteData;
+    SpriteSystem *spriteSys = ballCapsuleSys->ballCapsuleEditor.spriteSys;
+    SpriteManager *spriteMan = ballCapsuleSys->ballCapsuleEditor.spriteMan;
+    PaletteData *paletteData = ballCapsuleSys->ballCapsuleEditor.paletteData;
 
-    SpriteSystem_LoadPaletteBuffer(v2, 2, v0, v1, 19, PokeIconPalettesFileIndex(), 0, 3, NNS_G2D_VRAM_TYPE_2DMAIN, 16000);
+    SpriteSystem_LoadPaletteBuffer(paletteData, PLTTBUF_MAIN_OBJ, spriteSys, spriteMan, NARC_INDEX_POKETOOL__ICONGRA__PL_POKE_ICON, PokeIconPalettesFileIndex(), 0, 3, NNS_G2D_VRAM_TYPE_2DMAIN, 16000);
 
     {
-        int v3 = PokeIcon64KCellsFileIndex();
-        SpriteSystem_LoadCellResObj(v0, v1, 19, v3, 0, 17000);
+        int fileIndex = PokeIcon64KCellsFileIndex();
+        SpriteSystem_LoadCellResObj(spriteSys, spriteMan, 19, fileIndex, 0, 17000);
     }
 
     {
-        int v4 = PokeIcon64KAnimationFileIndex();
-        SpriteSystem_LoadAnimResObj(v0, v1, 19, v4, 0, 18000);
+        int fileIndex = PokeIcon64KAnimationFileIndex();
+        SpriteSystem_LoadAnimResObj(spriteSys, spriteMan, 19, fileIndex, 0, 18000);
     }
 }
 
 void BallCapsuleSystem_LoadPartyIcons(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-    int v1;
-    int v2;
-    int v3;
-    int v4;
-    Pokemon *v5;
-    SpriteTemplate v6;
+    // int v1;
+    // int v2;
+    // int v3;
+    // int v4;
+    Pokemon *mon;
+    SpriteTemplate spriteTemplate;
 
-    for (v0 = 0; v0 < ballCapsuleSys->appData->partyCount; v0++) {
-        v5 = ballCapsuleSys->appData->mons[v0];
+    for (int i = 0; i < ballCapsuleSys->appData->partyCount; i++) {
+        mon = ballCapsuleSys->appData->mons[i];
 
-        SpriteSystem_LoadCharResObjAtEndWithHardwareMappingType(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, NARC_INDEX_POKETOOL__ICONGRA__PL_POKE_ICON, Pokemon_IconSpriteIndex(v5), FALSE, NNS_G2D_VRAM_TYPE_2DMAIN, v0 + 15000);
+        SpriteSystem_LoadCharResObjAtEndWithHardwareMappingType(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, NARC_INDEX_POKETOOL__ICONGRA__PL_POKE_ICON, Pokemon_IconSpriteIndex(mon), FALSE, NNS_G2D_VRAM_TYPE_2DMAIN, i + 15000);
 
-        v6.x = 0;
-        v6.y = 0;
-        v6.z = 0;
-        v6.animIdx = 0;
-        v6.priority = 10;
-        v6.plttIdx = 0;
-        v6.vramType = NNS_G2D_VRAM_TYPE_2DMAIN;
-        v6.bgPriority = 2;
-        v6.vramTransfer = FALSE;
-        v6.resources[0] = (v0 + 15000);
-        v6.resources[1] = 16000;
-        v6.resources[2] = 17000;
-        v6.resources[3] = 18000;
-        v6.resources[4] = SPRITE_RESOURCE_NONE;
-        v6.resources[5] = SPRITE_RESOURCE_NONE;
+        spriteTemplate.x = 0;
+        spriteTemplate.y = 0;
+        spriteTemplate.z = 0;
+        spriteTemplate.animIdx = 0;
+        spriteTemplate.priority = 10;
+        spriteTemplate.plttIdx = 0;
+        spriteTemplate.vramType = NNS_G2D_VRAM_TYPE_2DMAIN;
+        spriteTemplate.bgPriority = 2;
+        spriteTemplate.vramTransfer = FALSE;
+        spriteTemplate.resources[0] = (i + 15000);
+        spriteTemplate.resources[1] = 16000;
+        spriteTemplate.resources[2] = 17000;
+        spriteTemplate.resources[3] = 18000;
+        spriteTemplate.resources[4] = SPRITE_RESOURCE_NONE;
+        spriteTemplate.resources[5] = SPRITE_RESOURCE_NONE;
 
-        ballCapsuleSys->partyIcons[v0] = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &v6);
+        ballCapsuleSys->partyIcons[i] = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &spriteTemplate);
 
-        v2 = Pokemon_GetValue(v5, MON_DATA_SPECIES, NULL);
-        v1 = Pokemon_GetValue(v5, MON_DATA_IS_EGG, NULL);
-        v4 = Pokemon_GetValue(v5, MON_DATA_FORM, NULL);
-        v3 = PokeIconPaletteIndex(v2, v4, v1);
+        int species = Pokemon_GetValue(mon, MON_DATA_SPECIES, NULL);
+        int isEgg = Pokemon_GetValue(mon, MON_DATA_IS_EGG, NULL);
+        int form = Pokemon_GetValue(mon, MON_DATA_FORM, NULL);
+        int palleteIndex = PokeIconPaletteIndex(species, form, isEgg);
 
-        Sprite_SetExplicitPaletteOffsetAutoAdjust(ballCapsuleSys->partyIcons[v0]->sprite, v3);
-        ManagedSprite_SetAnim(ballCapsuleSys->partyIcons[v0], 1);
+        Sprite_SetExplicitPaletteOffsetAutoAdjust(ballCapsuleSys->partyIcons[i]->sprite, palleteIndex);
+        ManagedSprite_SetAnim(ballCapsuleSys->partyIcons[i], 1);
     }
 }
 
 void ov76_0223C288(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-    int v1;
-    s16 v2, v3;
+    int i;
 
-    for (v0 = 0; v0 < ballCapsuleSys->appData->partyCount; v0++) {
-        ManagedSprite_SetDrawFlag(ballCapsuleSys->partyIcons[v0], 0);
+    for (i = 0; i < ballCapsuleSys->appData->partyCount; i++) {
+        ManagedSprite_SetDrawFlag(ballCapsuleSys->partyIcons[i], FALSE);
     }
 
-    for (v0 = 0; v0 < 12; v0++) {
-        v1 = ballCapsuleSys->capsuleData[v0].partyIndex;
+    for (i = 0; i < TOTAL_CAPSULES; i++) {
+        int index = ballCapsuleSys->capsuleData[i].partyIndex;
 
-        if (v1 != BALL_CAPSULE_INVALID_PARTY_INDEX) {
-            GetCapsulePosition(v0, &v2, &v3);
-            ManagedSprite_SetPositionXY(ballCapsuleSys->partyIcons[v1], v2 + -16, v3 + (+12));
-            ManagedSprite_SetDrawFlag(ballCapsuleSys->partyIcons[v1], 1);
+        if (index != BALL_CAPSULE_INVALID_PARTY_INDEX) {
+            s16 x, y;
+            GetCapsulePosition(i, &x, &y);
+            ManagedSprite_SetPositionXY(ballCapsuleSys->partyIcons[index], x + -16, y + (+12));
+            ManagedSprite_SetDrawFlag(ballCapsuleSys->partyIcons[index], TRUE);
         }
     }
 }
