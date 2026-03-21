@@ -66,6 +66,7 @@ enum BallCapsuleEditorWindows {
     BALL_CAPSULE_WINDOW_TOP_SCREEN_SELECT,
 
     BALL_CAPSULE_WINDOW_BOTTOM_SCREEN_MAIN,
+
     BALL_CAPSULE_WINDOW_BOTTOM_SCREEN_SEAL_COUNT1,
     BALL_CAPSULE_WINDOW_BOTTOM_SCREEN_SEAL_COUNT2,
     BALL_CAPSULE_WINDOW_BOTTOM_SCREEN_SEAL_COUNT3,
@@ -93,7 +94,7 @@ typedef struct {
 
 typedef struct {
     ManagedSprite *sprites[BALL_CAPSULE_BUTTON_MAX];
-} BallCapsuleEditorSprites;
+} BallCapsuleButtonSprites;
 
 typedef struct {
     int unk_00;
@@ -102,7 +103,7 @@ typedef struct {
     SpriteManager *spriteMan;
     BgConfig *bgConfig;
     PaletteData *paletteData;
-    Window unk_18[BALL_CAPSULE_WINDOW_MAX];
+    Window windows[BALL_CAPSULE_WINDOW_MAX];
     StringList *unk_C8;
     Menu *menu;
     PokemonSpriteManager *monSpriteMan;
@@ -171,7 +172,7 @@ typedef struct {
     int unk_3D8;
     int unk_3DC;
     int unk_3E0;
-    BallCapsuleEditorSprites editorSprites;
+    BallCapsuleButtonSprites buttonSprites;
     SealCasePages sealCasePages;
     Pokemon *mon;
     NARC *narc;
