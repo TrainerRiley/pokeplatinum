@@ -47,15 +47,15 @@
 
 void ov76_0223BF74(BgConfig *param0, Window *param1, int param2, BallCapsuleSystem *ballCapsuleSys, int param4);
 void ov76_0223C110(BallCapsuleSystem *ballCapsuleSys);
-void ov76_0223C288(BallCapsuleSystem *ballCapsuleSys);
-void ov76_0223C354(BallCapsuleSystem *ballCapsuleSys);
+void BallCapsuleSystem_UpdatePartyIconPositions(BallCapsuleSystem *ballCapsuleSys);
+void BallCapsuleSystem_UpdateEditData(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223C398(BallCapsuleEditor *ballCapsuleEditor);
 void ov76_0223C424(BallCapsuleEditor *ballCapsuleEditor);
 void ov76_0223C5A4(SpriteSystem *param0, SpriteManager *param1, PaletteData *param2, int param3, int param4, int param5, int param6, int param7, int param8, int param9, NARC *param10);
 void ov76_0223C61C(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
-void ov76_0223C7E0(BallCapsuleSystem *ballCapsuleSys);
-void ov76_0223C88C(BallCapsuleSystem *ballCapsuleSys);
-void ov76_0223C8BC(BallCapsuleSystem *ballCapsuleSys);
+void BallCapsuleSystem_UpdateCapsuleData(BallCapsuleSystem *ballCapsuleSys);
+void BallCapsuleSystem_TickSprites(BallCapsuleSystem *ballCapsuleSys);
+void BallCapsuleSystem_DeleteSprites(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223C8EC(BgConfig *param0, PaletteData *param1, int param2);
 void ov76_0223C974(BgConfig *param0, PaletteData *param1, int param2);
 void ov76_0223CB58(BallCapsuleSystem *ballCapsuleSys);
@@ -564,7 +564,7 @@ void BallCapsuleSystem_LoadPartyIcons(BallCapsuleSystem *ballCapsuleSys)
     }
 }
 
-void ov76_0223C288(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_UpdatePartyIconPositions(BallCapsuleSystem *ballCapsuleSys)
 {
     int i;
 
@@ -584,39 +584,29 @@ void ov76_0223C288(BallCapsuleSystem *ballCapsuleSys)
     }
 }
 
-void BallCapsuleSystem_UpdatePartyIcons(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_TickPartyIcons(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-
-    for (v0 = 0; v0 < ballCapsuleSys->appData->partyCount; v0++) {
-        ManagedSprite_TickFrame(ballCapsuleSys->partyIcons[v0]);
+    for (int i = 0; i < ballCapsuleSys->appData->partyCount; i++) {
+        ManagedSprite_TickFrame(ballCapsuleSys->partyIcons[i]);
     }
 }
 
 void BallCapsuleSystem_DeletePartyIcons(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-    int v1;
-
-    for (v0 = 0; v0 < ballCapsuleSys->appData->partyCount; v0++) {
-        Sprite_DeleteAndFreeResources(ballCapsuleSys->partyIcons[v0]);
+    for (int i = 0; i < ballCapsuleSys->appData->partyCount; i++) {
+        Sprite_DeleteAndFreeResources(ballCapsuleSys->partyIcons[i]);
     }
 }
 
-void ov76_0223C354(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_UpdateEditData(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-    int v1;
-    int v2 = 0;
-    BallCapsule *v3;
 
-    for (v0 = 0; v0 < 12; v0++) {
-        v3 = ballCapsuleSys->capsuleData[v0].ballCapsule;
-        ballCapsuleSys->editData[v0].hasSeals = BallCapsule_ContainsSeals(v3);
-        ballCapsuleSys->editData[v0].partyIndex = ballCapsuleSys->capsuleData[v0].partyIndex;
+    for (int i = 0; i < TOTAL_CAPSULES; i++) {
+        ballCapsuleSys->editData[i].hasSeals = BallCapsule_ContainsSeals(ballCapsuleSys->capsuleData[i].ballCapsule);
+        ballCapsuleSys->editData[i].partyIndex = ballCapsuleSys->capsuleData[i].partyIndex;
 
-        if ((ballCapsuleSys->editData[v0].hasSeals == 0) && (ballCapsuleSys->editData[v0].partyIndex != BALL_CAPSULE_INVALID_PARTY_INDEX)) {
-            BallCapsuleSystem_UnsetCapsule(ballCapsuleSys, v0);
+        if ((ballCapsuleSys->editData[i].hasSeals == 0) && (ballCapsuleSys->editData[i].partyIndex != BALL_CAPSULE_INVALID_PARTY_INDEX)) {
+            BallCapsuleSystem_UnsetCapsule(ballCapsuleSys, i);
         }
     }
 }
@@ -710,32 +700,26 @@ void ov76_0223C4AC(BallCapsuleSystem *ballCapsuleSys)
 
 void ov76_0223C544(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-
     if (ballCapsuleSys->ballCapsuleEditor.unk_04 == 0) {
         return;
     }
 
-    for (v0 = 0; v0 < 4; v0++) {
-        ManagedSprite_TickFrame(ballCapsuleSys->unk_314[v0]);
+    for (int i = 0; i < 4; i++) {
+        ManagedSprite_TickFrame(ballCapsuleSys->unk_314[i]);
     }
 }
 
 void ov76_0223C568(BallCapsuleSystem *ballCapsuleSys, int param1)
 {
-    int v0;
-
-    for (v0 = 0; v0 < 4; v0++) {
-        ManagedSprite_SetDrawFlag(ballCapsuleSys->unk_314[v0], param1);
+    for (int i = 0; i < 4; i++) {
+        ManagedSprite_SetDrawFlag(ballCapsuleSys->unk_314[i], param1);
     }
 }
 
 void ov76_0223C588(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-
-    for (v0 = 0; v0 < 4; v0++) {
-        Sprite_DeleteAndFreeResources(ballCapsuleSys->unk_314[v0]);
+    for (int i = 0; i < 4; i++) {
+        Sprite_DeleteAndFreeResources(ballCapsuleSys->unk_314[i]);
     }
 }
 
@@ -752,15 +736,14 @@ void ov76_0223C61C(BallCapsuleSystem *ballCapsuleSys, NARC *param1)
     ov76_0223C5A4(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, ballCapsuleSys->ballCapsuleEditor.paletteData, 266, 286, 174, 82, NNS_G2D_VRAM_TYPE_2DMAIN, 2, 1, param1);
     ov76_0223C5A4(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, ballCapsuleSys->ballCapsuleEditor.paletteData, 275, 291, 179, 87, NNS_G2D_VRAM_TYPE_2DMAIN, 2, 1, param1);
     {
-        int v0;
         SpriteTemplate v1;
 
-        for (v0 = 0; v0 < 12; v0++) {
+        for (int i = 0; i < TOTAL_CAPSULES; i++) {
             v1.x = 0;
             v1.y = 0;
             v1.z = 0;
-            v1.animIdx = ballCapsuleSys->editData[v0].hasSeals;
-            v1.priority = 40 - v0;
+            v1.animIdx = ballCapsuleSys->editData[i].hasSeals;
+            v1.priority = 40 - i;
             v1.plttIdx = 0;
             v1.vramType = NNS_G2D_VRAM_TYPE_2DMAIN;
             v1.bgPriority = 2;
@@ -772,12 +755,12 @@ void ov76_0223C61C(BallCapsuleSystem *ballCapsuleSys, NARC *param1)
             v1.resources[4] = SPRITE_RESOURCE_NONE;
             v1.resources[5] = SPRITE_RESOURCE_NONE;
 
-            ballCapsuleSys->editData[v0].sprite = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &v1);
+            ballCapsuleSys->editData[i].sprite = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &v1);
             {
                 s16 v2, v3;
 
-                GetCapsulePosition(v0, &v2, &v3);
-                ManagedSprite_SetPositionXY(ballCapsuleSys->editData[v0].sprite, v2, v3);
+                GetCapsulePosition(i, &v2, &v3);
+                ManagedSprite_SetPositionXY(ballCapsuleSys->editData[i].sprite, v2, v3);
             }
         }
 
@@ -813,72 +796,63 @@ void ov76_0223C61C(BallCapsuleSystem *ballCapsuleSys, NARC *param1)
     }
 }
 
-void ov76_0223C7E0(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_UpdateCapsuleData(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
+    BallCapsuleSystem_UpdateEditData(ballCapsuleSys);
+    BallCapsuleSystem_UpdatePartyIconPositions(ballCapsuleSys);
 
-    ov76_0223C354(ballCapsuleSys);
-    ov76_0223C288(ballCapsuleSys);
-
-    for (v0 = 0; v0 < TOTAL_CAPSULES; v0++) {
-        if (ballCapsuleSys->editData[v0].sprite == NULL) {
+    for (int i = 0; i < TOTAL_CAPSULES; i++) {
+        if (ballCapsuleSys->editData[i].sprite == NULL) {
             continue;
         }
 
-        ManagedSprite_SetAnim(ballCapsuleSys->editData[v0].sprite, ballCapsuleSys->editData[v0].hasSeals);
+        ManagedSprite_SetAnim(ballCapsuleSys->editData[i].sprite, ballCapsuleSys->editData[i].hasSeals);
     }
 }
 
-void BallCapsuleSys_SwapCapsules(BallCapsuleSystem *ballCapsuleSys, int param1, int param2)
+void BallCapsuleSys_SwapCapsules(BallCapsuleSystem *ballCapsuleSys, int indexA, int indexB)
 {
-    int v0;
-    int v1;
-    int v2;
-    int v3;
-    int v4;
-    BallCapsule v5;
+    int partyA = ballCapsuleSys->capsuleData[indexA].partyIndex;
+    int partyB = ballCapsuleSys->capsuleData[indexB].partyIndex;
 
-    v1 = ballCapsuleSys->capsuleData[param1].partyIndex;
-    v2 = ballCapsuleSys->capsuleData[param2].partyIndex;
-
-    if (v1 != BALL_CAPSULE_INVALID_PARTY_INDEX) {
-        v3 = param2 + 1;
-        Pokemon_SetValue(ballCapsuleSys->appData->mons[v1], MON_DATA_BALL_CAPSULE_ID, (u8 *)&v3);
+    // Swap capsule indices on the pokemon
+    if (partyA != BALL_CAPSULE_INVALID_PARTY_INDEX) {
+        int pokePartyA = indexB + 1;
+        Pokemon_SetValue(ballCapsuleSys->appData->mons[partyA], MON_DATA_BALL_CAPSULE_ID, (u8 *)&pokePartyA);
     }
 
-    if (v2 != BALL_CAPSULE_INVALID_PARTY_INDEX) {
-        v4 = param1 + 1;
-        Pokemon_SetValue(ballCapsuleSys->appData->mons[v2], MON_DATA_BALL_CAPSULE_ID, (u8 *)&v4);
+    if (partyB != BALL_CAPSULE_INVALID_PARTY_INDEX) {
+        int pokePartyB = indexA + 1;
+        Pokemon_SetValue(ballCapsuleSys->appData->mons[partyB], MON_DATA_BALL_CAPSULE_ID, (u8 *)&pokePartyB);
     }
 
-    v0 = ballCapsuleSys->capsuleData[param1].partyIndex;
-    ballCapsuleSys->capsuleData[param1].partyIndex = ballCapsuleSys->capsuleData[param2].partyIndex;
-    ballCapsuleSys->capsuleData[param2].partyIndex = v0;
+    // Swap indices
+    int tempIndex = ballCapsuleSys->capsuleData[indexA].partyIndex;
+    ballCapsuleSys->capsuleData[indexA].partyIndex = ballCapsuleSys->capsuleData[indexB].partyIndex;
+    ballCapsuleSys->capsuleData[indexB].partyIndex = tempIndex;
 
-    BallCapsule_Copy(ballCapsuleSys->capsuleData[param1].ballCapsule, &v5);
-    BallCapsule_Copy(ballCapsuleSys->capsuleData[param2].ballCapsule, ballCapsuleSys->capsuleData[param1].ballCapsule);
-    BallCapsule_Copy(&v5, ballCapsuleSys->capsuleData[param2].ballCapsule);
-    ov76_0223C7E0(ballCapsuleSys);
+    // Swap capsules
+    BallCapsule tempCapsule;
+    BallCapsule_Copy(ballCapsuleSys->capsuleData[indexA].ballCapsule, &tempCapsule);
+    BallCapsule_Copy(ballCapsuleSys->capsuleData[indexB].ballCapsule, ballCapsuleSys->capsuleData[indexA].ballCapsule);
+    BallCapsule_Copy(&tempCapsule, ballCapsuleSys->capsuleData[indexB].ballCapsule);
+    BallCapsuleSystem_UpdateCapsuleData(ballCapsuleSys);
 }
 
-void ov76_0223C88C(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_TickSprites(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-
-    for (v0 = 0; v0 < 12; v0++) {
-        ManagedSprite_TickFrame(ballCapsuleSys->editData[v0].sprite);
+    for (int i = 0; i < TOTAL_CAPSULES; i++) {
+        ManagedSprite_TickFrame(ballCapsuleSys->editData[i].sprite);
     }
 
     ManagedSprite_TickFrame(ballCapsuleSys->unk_2F4[0]);
     ManagedSprite_TickFrame(ballCapsuleSys->unk_2F4[1]);
 }
 
-void ov76_0223C8BC(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_DeleteSprites(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-
-    for (v0 = 0; v0 < 12; v0++) {
-        Sprite_DeleteAndFreeResources(ballCapsuleSys->editData[v0].sprite);
+    for (int i = 0; i < TOTAL_CAPSULES; i++) {
+        Sprite_DeleteAndFreeResources(ballCapsuleSys->editData[i].sprite);
     }
 
     Sprite_DeleteAndFreeResources(ballCapsuleSys->unk_2F4[0]);
@@ -905,25 +879,25 @@ void ov76_0223C974(BgConfig *param0, PaletteData *param1, int param2)
     PaletteData_LoadBufferFromFileStart(param1, 91, 294, HEAP_ID_BALL_CAPSULE_SYSTEM, 1, 0x20, 11 * 16);
 }
 
-void Window_SetMessage(Window *param0, int param1)
+void Window_SetMessage(Window *window, int messageID)
 {
-    MessageLoader *v0;
-    String *v1;
+    MessageLoader *messageLoader;
+    String *message;
 
-    if (param1 == 0xFFFF) {
-        Window_FillTilemap(param0, 15);
-        Window_CopyToVRAM(param0);
+    if (messageID == 0xFFFF) {
+        Window_FillTilemap(window, 15);
+        Window_CopyToVRAM(window);
         return;
     }
 
-    v0 = MessageLoader_Init(MSG_LOADER_PRELOAD_ENTIRE_BANK, NARC_INDEX_MSGDATA__PL_MSG, TEXT_BANK_UNK_0008, HEAP_ID_BALL_CAPSULE_SYSTEM);
-    v1 = MessageLoader_GetNewString(v0, param1);
+    messageLoader = MessageLoader_Init(MSG_LOADER_PRELOAD_ENTIRE_BANK, NARC_INDEX_MSGDATA__PL_MSG, TEXT_BANK_UNK_0008, HEAP_ID_BALL_CAPSULE_SYSTEM);
+    message = MessageLoader_GetNewString(messageLoader, messageID);
 
-    Window_FillTilemap(param0, 15);
-    Text_AddPrinterWithParams(param0, FONT_MESSAGE, v1, 0, 0, TEXT_SPEED_INSTANT, NULL);
-    Window_CopyToVRAM(param0);
-    String_Free(v1);
-    MessageLoader_Free(v0);
+    Window_FillTilemap(window, 15);
+    Text_AddPrinterWithParams(window, FONT_MESSAGE, message, 0, 0, TEXT_SPEED_INSTANT, NULL);
+    Window_CopyToVRAM(window);
+    String_Free(message);
+    MessageLoader_Free(messageLoader);
 }
 
 void CreateBasicWindow(BgConfig *param0, Window *param1, int param2, int param3, int param4, int param5, int param6, int param7)

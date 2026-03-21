@@ -199,7 +199,7 @@ static int ov76_0223D50C(BallCapsuleSystem *ballCapsuleSys)
 {
     ov76_0223B400(ballCapsuleSys);
     ov76_0223B808(ballCapsuleSys);
-    ov76_0223C7E0(ballCapsuleSys);
+    BallCapsuleSystem_UpdateCapsuleData(ballCapsuleSys);
     ov76_0223D494(ballCapsuleSys, 2, 0, 0);
 
     return 0;
@@ -305,11 +305,11 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
 
         ov76_0223C110(ballCapsuleSys);
         BallCapsuleSystem_LoadPartyIcons(ballCapsuleSys);
-        ov76_0223C288(ballCapsuleSys);
+        BallCapsuleSystem_UpdatePartyIconPositions(ballCapsuleSys);
         ov76_0223CE84(ballCapsuleSys, v0);
         ov76_0223CF24(ballCapsuleSys, v0);
         ov76_0223CF88(ballCapsuleSys, v0);
-        ov76_0223C354(ballCapsuleSys);
+        BallCapsuleSystem_UpdateEditData(ballCapsuleSys);
         ov76_0223C61C(ballCapsuleSys, v0);
         CreateBasicWindow(ballCapsuleSys->ballCapsuleEditor.bgConfig, &ballCapsuleSys->ballCapsuleEditor.unk_18[0], 1, 2, 21, 27, 2, 0 + ((1 + (18 + 12)) + 9));
         ov76_0223B208(ballCapsuleSys);
@@ -367,7 +367,7 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
         if (v1 == 1) {
             ov76_0223B400(ballCapsuleSys);
             ov76_0223B808(ballCapsuleSys);
-            ov76_0223C7E0(ballCapsuleSys);
+            BallCapsuleSystem_UpdateCapsuleData(ballCapsuleSys);
 
             ballCapsuleSys->selectedCapsules[0] = v3;
 
@@ -426,7 +426,7 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
             break;
         }
         Window_Remove(&ballCapsuleSys->ballCapsuleEditor.unk_18[0]);
-        ov76_0223C8BC(ballCapsuleSys);
+        BallCapsuleSystem_DeleteSprites(ballCapsuleSys);
         BallCapsuleSystem_DeletePartyIcons(ballCapsuleSys);
         ov76_0223D31C(ballCapsuleSys);
         ov76_0223C588(ballCapsuleSys);
@@ -435,8 +435,8 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
         return 0;
     }
 
-    BallCapsuleSystem_UpdatePartyIcons(ballCapsuleSys);
-    ov76_0223C88C(ballCapsuleSys);
+    BallCapsuleSystem_TickPartyIcons(ballCapsuleSys);
+    BallCapsuleSystem_TickSprites(ballCapsuleSys);
 
     return 1;
 }
@@ -970,7 +970,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         }
 
         ov76_0223B808(ballCapsuleSys);
-        ov76_0223C7E0(ballCapsuleSys);
+        BallCapsuleSystem_UpdateCapsuleData(ballCapsuleSys);
         {
             GameRecords *v7;
             v7 = SaveData_GetGameRecords(ballCapsuleSys->appData->saveData);
@@ -1162,8 +1162,8 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
 
     ov76_0223D318(ballCapsuleSys);
     ov76_0223C544(ballCapsuleSys);
-    BallCapsuleSystem_UpdatePartyIcons(ballCapsuleSys);
-    ov76_0223C88C(ballCapsuleSys);
+    BallCapsuleSystem_TickPartyIcons(ballCapsuleSys);
+    BallCapsuleSystem_TickSprites(ballCapsuleSys);
 
     return 1;
 }
@@ -1183,7 +1183,7 @@ static BOOL ov76_0223E8A4(BallCapsuleSystem *ballCapsuleSys)
         }
 
         Window_Remove(&ballCapsuleSys->ballCapsuleEditor.unk_18[0]);
-        ov76_0223C8BC(ballCapsuleSys);
+        BallCapsuleSystem_DeleteSprites(ballCapsuleSys);
         BallCapsuleSystem_DeletePartyIcons(ballCapsuleSys);
         ov76_0223D31C(ballCapsuleSys);
         ov76_0223C588(ballCapsuleSys);
@@ -1193,8 +1193,8 @@ static BOOL ov76_0223E8A4(BallCapsuleSystem *ballCapsuleSys)
         return 0;
     }
 
-    BallCapsuleSystem_UpdatePartyIcons(ballCapsuleSys);
-    ov76_0223C88C(ballCapsuleSys);
+    BallCapsuleSystem_TickPartyIcons(ballCapsuleSys);
+    BallCapsuleSystem_TickSprites(ballCapsuleSys);
 
     return 1;
 }
@@ -1213,7 +1213,7 @@ void BallCapsuleSystem_UnsetCapsule(BallCapsuleSystem *ballCapsuleSys, int param
     }
 
     ballCapsuleSys->capsuleData[param1].partyIndex = BALL_CAPSULE_INVALID_PARTY_INDEX;
-    ov76_0223C7E0(ballCapsuleSys);
+    BallCapsuleSystem_UpdateCapsuleData(ballCapsuleSys);
 }
 
 static BOOL ov76_0223E950(BallCapsuleSystem *ballCapsuleSys)
@@ -1235,8 +1235,8 @@ static BOOL ov76_0223E950(BallCapsuleSystem *ballCapsuleSys)
         break;
     }
 
-    BallCapsuleSystem_UpdatePartyIcons(ballCapsuleSys);
-    ov76_0223C88C(ballCapsuleSys);
+    BallCapsuleSystem_TickPartyIcons(ballCapsuleSys);
+    BallCapsuleSystem_TickSprites(ballCapsuleSys);
 
     return 1;
 }
@@ -1287,8 +1287,8 @@ static BOOL ov76_0223E9C4(BallCapsuleSystem *ballCapsuleSys)
         break;
     }
 
-    BallCapsuleSystem_UpdatePartyIcons(ballCapsuleSys);
-    ov76_0223C88C(ballCapsuleSys);
+    BallCapsuleSystem_TickPartyIcons(ballCapsuleSys);
+    BallCapsuleSystem_TickSprites(ballCapsuleSys);
 
     return 1;
 }
