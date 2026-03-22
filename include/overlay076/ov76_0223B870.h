@@ -55,14 +55,14 @@ void BallCapsuleSys_UpdateWindowSealCount(BallCapsuleSystem *ballCapsuleSys, int
 void BallCapsuleSys_DeleteSealCountWindows(BallCapsuleSystem *ballCapsuleSys);
 void Window_SetSealNameMessage(Window *param0, int param1);
 void ov76_0223CE2C(void);
-void ov76_0223CE44(void);
-void ov76_0223CE64(void);
-void ov76_0223CE84(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
-void ov76_0223CF24(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
-void ov76_0223CF88(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
-void ov76_0223CFEC(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
+void BallCapsuleSystem_ScreenFadeIn(void);
+void BallCapsuleSystem_ScreeFadeOut(void);
+void ov76_0223CE84(BallCapsuleSystem *ballCapsuleSys, NARC *narc);
+void ov76_0223CF24(BallCapsuleSystem *ballCapsuleSys, NARC *narc);
+void ov76_0223CF88(BallCapsuleSystem *ballCapsuleSys, NARC *narc);
+void ov76_0223CFEC(BallCapsuleSystem *ballCapsuleSys, NARC *narc);
 void BallCapsuleSys_CreateStaticButtons(BallCapsuleSystem *ballCapsuleSys);
-void BallCapsuleSystem_SetButtonDrawFlags(BallCapsuleSystem *ballCapsuleSys, int param1);
+void BallCapsuleSystem_SetButtonDrawFlags(BallCapsuleSystem *ballCapsuleSys, BOOL draw);
 void BallCapsuleSystem_NOP(BallCapsuleSystem *ballCapsuleSys);
 void BallCapsuleSystem_DeleteStaticButtons(BallCapsuleSystem *ballCapsuleSys);
 

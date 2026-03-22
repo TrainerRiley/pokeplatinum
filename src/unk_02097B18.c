@@ -141,7 +141,7 @@ static int BallCapsuleApp_Init(ApplicationManager *appMan, int *param1)
     ov76_0223BF10();
 
     ballCapsuleSys->ballCapsuleEditor.monSpriteMan = PokemonSpriteManager_New(HEAP_ID_BALL_CAPSULE_SYSTEM);
-    ballCapsuleSys->ballCapsuleEditor.unk_188 = PokemonAnimManager_New(HEAP_ID_BALL_CAPSULE_SYSTEM, 1, FALSE);
+    ballCapsuleSys->ballCapsuleEditor.animManager = PokemonAnimManager_New(HEAP_ID_BALL_CAPSULE_SYSTEM, 1, FALSE);
 
     int v7 = Options_Frame(ballCapsuleSys->appData->options);
     ov76_0223C8EC(ballCapsuleSys->ballCapsuleEditor.bgConfig, ballCapsuleSys->ballCapsuleEditor.paletteData, v7);
@@ -227,9 +227,9 @@ static int BallCapsuleApp_Exit(ApplicationManager *appMan, int *param1)
     BallCapsuleAppData_SetSelectedCapsuleIndex(ballCapsuleSys->appData, ballCapsuleSys->selectedCapsules[0]);
     Heap_Free(ballCapsuleSys->mon);
     ov76_0223B678(ballCapsuleSys);
-    TouchScreenActions_Free(ballCapsuleSys->ballCapsuleEditor.unk_F8);
+    TouchScreenActions_Free(ballCapsuleSys->ballCapsuleEditor.touchScreenActions);
     PokemonSpriteManager_Free(ballCapsuleSys->ballCapsuleEditor.monSpriteMan);
-    PokemonAnimManager_Free(ballCapsuleSys->ballCapsuleEditor.unk_188);
+    PokemonAnimManager_Free(ballCapsuleSys->ballCapsuleEditor.animManager);
     ov76_0223B8C4(ballCapsuleSys);
     ov76_0223C424(&ballCapsuleSys->ballCapsuleEditor);
     VramTransfer_Free();

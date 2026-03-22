@@ -3,6 +3,7 @@
 #include <nitro.h>
 #include <string.h>
 
+#include "constants/ball_capsule.h"
 #include "generated/trainer_score_events.h"
 
 #include "struct_decls/font_oam.h"
@@ -14,7 +15,6 @@
 #include "battle_anim/struct_ov12_02236030.h"
 #include "battle_anim/struct_ov12_02237728.h"
 #include "overlay076/const_ov76_0223EF3C.h"
-#include "overlay076/funcptr_ov76_0223D674.h"
 #include "overlay076/ov76_0223B140.h"
 #include "overlay076/ov76_0223B870.h"
 #include "overlay076/struct_ov76_0223BF74.h"
@@ -46,13 +46,7 @@
 #include "unk_02097B18.h"
 #include "vram_transfer.h"
 
-typedef struct {
-    int unk_00;
-    ManagedSprite *unk_04;
-    FontOAM *unk_08;
-} UnkStruct_ov76_0223D9AC;
-
-static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys);
+static BOOL BallCapsuleSystem_UpdateMainMenu(BallCapsuleSystem *ballCapsuleSys);
 static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys);
 static BOOL ov76_0223E8A4(BallCapsuleSystem *ballCapsuleSys);
 static BOOL ov76_0223E950(BallCapsuleSystem *ballCapsuleSys);
@@ -168,9 +162,9 @@ int ov76_0223D45C(BallCapsuleSystem *ballCapsuleSys, int param1)
 static void ov76_0223D494(BallCapsuleSystem *ballCapsuleSys, int param1, int param2, int param3)
 {
     if (param2 == 0xff) {
-        ballCapsuleSys->unk_3D4 = ballCapsuleSys->unk_3D8;
+        ballCapsuleSys->state = ballCapsuleSys->unk_3D8;
     } else {
-        ballCapsuleSys->unk_3D4 = param2;
+        ballCapsuleSys->state = param2;
     }
 
     ballCapsuleSys->unk_3CC = param1;
@@ -226,7 +220,7 @@ const UnkStruct_ov76_0223BF74 Unk_ov76_0223EF3C[] = {
 };
 
 static BOOL (*const Unk_ov76_0223EE04[])(BallCapsuleSystem *cbmw) = {
-    ov76_0223D674,
+    BallCapsuleSystem_UpdateMainMenu,
     ov76_0223DF94,
     ov76_0223E8A4,
     ov76_0223E950,
@@ -242,38 +236,39 @@ BOOL ov76_0223D550(BallCapsuleSystem *ballCapsuleSys)
     return v0;
 }
 
-static BOOL ov76_0223D574(int *param0)
+// Returns whether the cursor moved in this call
+static BOOL BallCapsuleSystem_MoveCursor(int *index)
 {
-    int *v0 = param0;
-
+    // Right and left wrap and move to the next/prev row
     if (gSystem.pressedKeysRepeatable & PAD_KEY_RIGHT) {
-        (*v0)++;
-        (*v0) %= 12;
+        (*index)++;
+        (*index) %= TOTAL_CAPSULES;
     } else if (gSystem.pressedKeysRepeatable & PAD_KEY_LEFT) {
-        if (*v0 > 0) {
-            (*v0)--;
+        if (*index > 0) {
+            (*index)--;
         } else {
-            *v0 = 12 - 1;
+            *index = TOTAL_CAPSULES - 1;
         }
+        // Up and down do not wrap at all
     } else if (gSystem.pressedKeysRepeatable & PAD_KEY_UP) {
-        if ((*v0 / 4) != 0) {
-            (*v0) -= 4;
-            (*v0) %= 12;
+        if ((*index / CAPSULES_PER_ROW) != 0) {
+            (*index) -= CAPSULES_PER_ROW;
+            (*index) %= TOTAL_CAPSULES;
         } else {
-            return 0;
+            return FALSE;
         }
     } else if (gSystem.pressedKeysRepeatable & PAD_KEY_DOWN) {
-        if ((*v0 / 4) != (3 - 1)) {
-            (*v0) += 4;
-            (*v0) %= 12;
+        if ((*index / CAPSULES_PER_ROW) != (CAPSULES_PER_COLUMN - 1)) {
+            (*index) += CAPSULES_PER_ROW;
+            (*index) %= TOTAL_CAPSULES;
         } else {
-            return 0;
+            return FALSE;
         }
     } else {
-        return 0;
+        return FALSE;
     }
 
-    return 1;
+    return TRUE;
 }
 
 static void ov76_0223D600(BallCapsuleSystem *ballCapsuleSys, int param1, BOOL param2)
@@ -295,29 +290,43 @@ static void ov76_0223D600(BallCapsuleSystem *ballCapsuleSys, int param1, BOOL pa
     }
 }
 
-static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
-{
-    switch (ballCapsuleSys->unk_3D4) {
-    case 0: {
-        NARC *v0;
+enum BallCapsuleSystemState {
+    BALL_CAPSULE_SYSTEM_INIT = 0,
+    BALL_CAPSULE_SYSTEM_FADE_IN,
+    BALL_CAPSULE_SYSTEM_WAIT_FOR_FADE_IN,
+    BALL_CAPSULE_SYSTEM_MAIN,
+    BALL_CAPSULE_SYSTEM_EDIT_MENU,
+    BALL_CAPSULE_SYSTEM_SHUTDOWN,
+    BALL_CAPSULE_SYSTEM_EXIT,
+    BALL_CAPSULE_SYSTEM_EXIT_EDITOR,
+    BALL_CAPSULE_SYSTEM_8,
+};
 
-        v0 = NARC_ctor(NARC_INDEX_APPLICATION__CUSTOM_BALL__DATA__CB_DATA, HEAP_ID_BALL_CAPSULE_SYSTEM);
+typedef int (*BallCapsuleMenuFunc)(BallCapsuleSystem *);
+
+static BOOL BallCapsuleSystem_UpdateMainMenu(BallCapsuleSystem *ballCapsuleSys)
+{
+    switch (ballCapsuleSys->state) {
+    case BALL_CAPSULE_SYSTEM_INIT: {
+        NARC *narc;
+
+        narc = NARC_ctor(NARC_INDEX_APPLICATION__CUSTOM_BALL__DATA__CB_DATA, HEAP_ID_BALL_CAPSULE_SYSTEM);
 
         ov76_0223C110(ballCapsuleSys);
         BallCapsuleSystem_LoadPartyIcons(ballCapsuleSys);
         BallCapsuleSystem_UpdatePartyIconPositions(ballCapsuleSys);
-        ov76_0223CE84(ballCapsuleSys, v0);
-        ov76_0223CF24(ballCapsuleSys, v0);
-        ov76_0223CF88(ballCapsuleSys, v0);
+        ov76_0223CE84(ballCapsuleSys, narc);
+        ov76_0223CF24(ballCapsuleSys, narc);
+        ov76_0223CF88(ballCapsuleSys, narc);
         BallCapsuleSystem_UpdateEditData(ballCapsuleSys);
-        ov76_0223C61C(ballCapsuleSys, v0);
+        ov76_0223C61C(ballCapsuleSys, narc);
         CreateWindowWithScroll(ballCapsuleSys->ballCapsuleEditor.bgConfig, &ballCapsuleSys->ballCapsuleEditor.windows[0], 1, 2, 21, 27, 2, 0 + ((1 + (18 + 12)) + 9));
         ov76_0223B208(ballCapsuleSys);
         ov76_0223B69C(ballCapsuleSys, 1);
         ov76_0223B1E0(ballCapsuleSys);
-        ov76_0223CFEC(ballCapsuleSys, v0);
+        ov76_0223CFEC(ballCapsuleSys, narc);
         BallCapsuleSys_CreateStaticButtons(ballCapsuleSys);
-        ov76_0223C438(ballCapsuleSys, v0);
+        ov76_0223C438(ballCapsuleSys, narc);
         ov76_0223C4AC(ballCapsuleSys);
         BallCapsuleSystem_SaveCapsuleToSelectedSlot(ballCapsuleSys);
         BallCapsuleSystem_LoadSealCounts(ballCapsuleSys);
@@ -330,46 +339,46 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
         ov76_0223B96C(ballCapsuleSys, 0);
         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 7);
         ov76_0223CE2C();
-        ov76_0223DCB8(ballCapsuleSys, 0);
+        BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 0);
 
-        NARC_dtor(v0);
+        NARC_dtor(narc);
     }
-        ballCapsuleSys->unk_3D4++;
+        ballCapsuleSys->state++;
         break;
 
-    case 1:
-        ov76_0223CE44();
-        ballCapsuleSys->unk_3D4++;
+    case BALL_CAPSULE_SYSTEM_FADE_IN:
+        BallCapsuleSystem_ScreenFadeIn();
+        ballCapsuleSys->state++;
         break;
 
-    case 2:
+    case BALL_CAPSULE_SYSTEM_WAIT_FOR_FADE_IN:
         if (IsScreenFadeDone() != 1) {
             break;
         }
 
-        ballCapsuleSys->unk_3D4++;
+        ballCapsuleSys->state++;
 
-    case 3: {
-        BOOL v1;
-        int v2;
-        int v3;
+    case BALL_CAPSULE_SYSTEM_MAIN: {
+        BOOL cursorMoved;
+        int prevCursorIndex;
+        int currCursorIndex;
 
-        if (TouchScreen_Tapped() == 1) {
+        if (TouchScreen_Tapped() == TRUE) {
             ov76_0223D4FC(ballCapsuleSys);
             break;
         }
 
-        v2 = ballCapsuleSys->selectedCapsules[0];
-        v1 = ov76_0223D574(&(ballCapsuleSys->selectedCapsules[0]));
-        v3 = ballCapsuleSys->selectedCapsules[0];
-        ballCapsuleSys->selectedCapsules[0] = v2;
+        prevCursorIndex = ballCapsuleSys->selectedCapsules[0];
+        cursorMoved = BallCapsuleSystem_MoveCursor(&(ballCapsuleSys->selectedCapsules[0]));
+        currCursorIndex = ballCapsuleSys->selectedCapsules[0];
+        ballCapsuleSys->selectedCapsules[0] = prevCursorIndex;
 
-        if (v1 == 1) {
+        if (cursorMoved == TRUE) {
             ov76_0223B400(ballCapsuleSys);
             ov76_0223B808(ballCapsuleSys);
             BallCapsuleSystem_UpdateCapsuleData(ballCapsuleSys);
 
-            ballCapsuleSys->selectedCapsules[0] = v3;
+            ballCapsuleSys->selectedCapsules[0] = currCursorIndex;
 
             ov76_0223D600(ballCapsuleSys, 0, 1);
             ov76_0223B678(ballCapsuleSys);
@@ -379,32 +388,32 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
 
             Sound_PlayEffect(SEQ_SE_CONFIRM);
         } else if (gSystem.pressedKeys & PAD_BUTTON_A) {
-            ballCapsuleSys->unk_3D4++;
+            ballCapsuleSys->state++;
             Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 8);
             ov76_0223BF74(ballCapsuleSys->ballCapsuleEditor.bgConfig, &ballCapsuleSys->ballCapsuleEditor.windows[1], 1, ballCapsuleSys, ballCapsuleSys->selectedCapsules[0]);
             Sound_PlayEffect(SEQ_SE_CONFIRM);
         } else if (gSystem.pressedKeys & PAD_BUTTON_B) {
-            ballCapsuleSys->unk_3D4 = 5;
+            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_SHUTDOWN;
             Sound_PlayEffect(SEQ_SE_DP_DECIDE);
         }
     } break;
-    case 4: {
-        UnkFuncPtr_ov76_0223D674 v4;
-        u32 v5 = Menu_ProcessInput(ballCapsuleSys->ballCapsuleEditor.menu);
+    case BALL_CAPSULE_SYSTEM_EDIT_MENU: {
 
-        switch (v5) {
+        u32 result = Menu_ProcessInput(ballCapsuleSys->ballCapsuleEditor.menu);
+
+        switch (result) {
         case 0xfffffffe:
             ov76_0223D4C4(ballCapsuleSys);
             Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 7);
-            ballCapsuleSys->unk_3D4 = 3;
+            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_MAIN;
             break;
         case 0xffffffff:
             break;
         default:
-            v4 = (UnkFuncPtr_ov76_0223D674)v5;
+            BallCapsuleMenuFunc menuFunc = (BallCapsuleMenuFunc)result;
 
-            if (v4 != NULL) {
-                int v6 = v4(ballCapsuleSys);
+            if (menuFunc != NULL) {
+                int v6 = menuFunc(ballCapsuleSys);
 
                 if (v6 != 1) {
                     ov76_0223D4C4(ballCapsuleSys);
@@ -412,16 +421,16 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
                 }
 
                 Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 7);
-                ballCapsuleSys->unk_3D4 = 3;
+                ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_MAIN;
             }
             break;
         }
     } break;
-    case 5:
-        ov76_0223CE64();
-        ballCapsuleSys->unk_3D4++;
+    case BALL_CAPSULE_SYSTEM_SHUTDOWN:
+        BallCapsuleSystem_ScreeFadeOut();
+        ballCapsuleSys->state++;
         break;
-    case 6:
+    case BALL_CAPSULE_SYSTEM_EXIT:
         if (IsScreenFadeDone() != 1) {
             break;
         }
@@ -432,27 +441,27 @@ static BOOL ov76_0223D674(BallCapsuleSystem *ballCapsuleSys)
         ov76_0223C588(ballCapsuleSys);
         BallCapsuleSystem_UnloadEditorSprites(ballCapsuleSys);
         sub_02097F30(ballCapsuleSys->appData, 0);
-        return 0;
+        return FALSE;
     }
 
     BallCapsuleSystem_TickPartyIcons(ballCapsuleSys);
     BallCapsuleSystem_TickSprites(ballCapsuleSys);
 
-    return 1;
+    return TRUE;
 }
 
-void ov76_0223D94C(ManagedSprite *param0, int param1)
+void BallCapsuleSystem_SetButtonSpriteState(ManagedSprite *sprite, enum TouchScreenButtonState screenState)
 {
-    switch (param1) {
-    case 0:
-        ManagedSprite_SetAnimationFrame(param0, 1);
+    switch (screenState) {
+    case TOUCH_BUTTON_PRESSED:
+        ManagedSprite_SetAnimationFrame(sprite, 1);
         break;
-    case 2:
-        ManagedSprite_SetAnimationFrame(param0, 2);
+    case TOUCH_BUTTON_HELD:
+        ManagedSprite_SetAnimationFrame(sprite, 2);
         break;
-    case 1:
-    case 3:
-        ManagedSprite_SetAnimationFrame(param0, 0);
+    case TOUCH_BUTTON_RELEASED:
+    case TOUCH_BUTTON_HELD_OUT_OF_BOUNDS:
+        ManagedSprite_SetAnimationFrame(sprite, 0);
         break;
     default:
         GF_ASSERT(0);
@@ -460,62 +469,67 @@ void ov76_0223D94C(ManagedSprite *param0, int param1)
     }
 }
 
-static void ov76_0223D984(FontOAM *param0, int param1, int param2)
+static void FontOAM_MovePosition(FontOAM *fontOAM, int xOffset, int yOffset)
 {
-    int v0;
-    int v1;
-
-    if (param0 != NULL) {
-        FontOAM_GetXY(param0, &v0, &v1);
-        FontOAM_SetXY(param0, v0 + param1, v1 + param2);
+    if (fontOAM != NULL) {
+        int x;
+        int y;
+        FontOAM_GetXY(fontOAM, &x, &y);
+        FontOAM_SetXY(fontOAM, x + xOffset, y + yOffset);
     }
 }
 
-static void ov76_0223D9AC(SysTask *param0, void *param1)
-{
-    UnkStruct_ov76_0223D9AC *v0 = param1;
+typedef struct {
+    int timer;
+    ManagedSprite *sprite;
+    FontOAM *fontOAM;
+} ButtonAnimation;
 
-    switch (v0->unk_00) {
+static void ButtonAnimatinSysTask(SysTask *sysTask, void *buttonAnimation)
+{
+    ButtonAnimation *anim = buttonAnimation;
+
+    switch (anim->timer) {
     case 3:
-        ov76_0223D984(v0->unk_08, 0, -1);
-        ManagedSprite_SetAnimationFrame(v0->unk_04, 2);
-        v0->unk_00++;
+        FontOAM_MovePosition(anim->fontOAM, 0, -1);
+        ManagedSprite_SetAnimationFrame(anim->sprite, 2);
+        anim->timer++;
         break;
     case 6:
-        ov76_0223D984(v0->unk_08, 0, +2);
-        ManagedSprite_SetAnimationFrame(v0->unk_04, 0);
-        SysTask_Done(param0);
-        Heap_Free(v0);
+        FontOAM_MovePosition(anim->fontOAM, 0, +2);
+        ManagedSprite_SetAnimationFrame(anim->sprite, 0);
+        SysTask_Done(sysTask);
+        Heap_Free(anim);
         break;
     default:
-        v0->unk_00++;
+        anim->timer++;
         break;
     }
 }
 
-static void ov76_0223DA00(ManagedSprite *param0, FontOAM *param1)
+static void ButtonAnimation_Init(ManagedSprite *sprite, FontOAM *fontOAM)
 {
-    UnkStruct_ov76_0223D9AC *v0 = Heap_Alloc(HEAP_ID_BALL_CAPSULE_SYSTEM, sizeof(UnkStruct_ov76_0223D9AC));
+    ButtonAnimation *anim = Heap_Alloc(HEAP_ID_BALL_CAPSULE_SYSTEM, sizeof(ButtonAnimation));
 
-    v0->unk_00 = 1;
-    v0->unk_04 = param0;
-    v0->unk_08 = param1;
+    anim->timer = 1;
+    anim->sprite = sprite;
+    anim->fontOAM = fontOAM;
 
-    ov76_0223D984(v0->unk_08, 0, -1);
-    SysTask_Start(ov76_0223D9AC, v0, 1000);
+    FontOAM_MovePosition(anim->fontOAM, 0, -1);
+    SysTask_Start(ButtonAnimatinSysTask, anim, 1000);
 }
 
-void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
+void ov76_0223DA34(u32 buttonID, enum TouchScreenButtonState touchScreenState, void *data)
 {
-    BallCapsuleSystem *ballCapsuleSys = (BallCapsuleSystem *)param2;
+    BallCapsuleSystem *ballCapsuleSys = (BallCapsuleSystem *)data;
 
-    if (ballCapsuleSys->ballCapsuleEditor.unk_04 == 0) {
+    if (ballCapsuleSys->ballCapsuleEditor.touchScreenActive == FALSE) {
         return;
     }
 
-    switch (param0) {
-    case 8:
-        if (param1 == TOUCH_BUTTON_PRESSED) {
+    switch (buttonID) {
+    case BALL_CAPSULE_BUTTON_PREVPAGE:
+        if (touchScreenState == TOUCH_BUTTON_PRESSED) {
             if (ballCapsuleSys->sealCasePages.currentPage > 0) {
                 ballCapsuleSys->sealCasePages.currentPage--;
             } else {
@@ -530,10 +544,10 @@ void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
             Sound_PlayEffect(SEQ_SE_DP_CUSTOM02);
         }
 
-        ov76_0223D94C(ballCapsuleSys->buttonSprites.sprites[8], param1);
+        BallCapsuleSystem_SetButtonSpriteState(ballCapsuleSys->buttonSprites.sprites[8], touchScreenState);
         break;
-    case 9:
-        if (param1 == TOUCH_BUTTON_PRESSED) {
+    case BALL_CAPSULE_BUTTON_NEXTPAGE:
+        if (touchScreenState == TOUCH_BUTTON_PRESSED) {
             ballCapsuleSys->sealCasePages.currentPage++;
             ballCapsuleSys->sealCasePages.currentPage %= ballCapsuleSys->sealCasePages.totalPages;
 
@@ -544,71 +558,71 @@ void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
             BallCapsuleSystem_PrintSealCountsToWindows(ballCapsuleSys);
             Sound_PlayEffect(SEQ_SE_DP_CUSTOM02);
         }
-        ov76_0223D94C(ballCapsuleSys->buttonSprites.sprites[9], param1);
+        BallCapsuleSystem_SetButtonSpriteState(ballCapsuleSys->buttonSprites.sprites[9], touchScreenState);
         break;
-    case 10:
-        if (param1 == TOUCH_BUTTON_PRESSED) {
-            if (ballCapsuleSys->unk_3D4 != 5) {
-                ballCapsuleSys->unk_3D4 = 5;
+    case BALL_CAPSULE_BUTTON_CONFIRM:
+        if (touchScreenState == TOUCH_BUTTON_PRESSED) {
+            if (ballCapsuleSys->state != BALL_CAPSULE_SYSTEM_SHUTDOWN) {
+                ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_SHUTDOWN;
                 Sound_PlayEffect(SEQ_SE_DP_DECIDE);
             }
 
-            ov76_0223DA00(ballCapsuleSys->buttonSprites.sprites[10], NULL);
+            ButtonAnimation_Init(ballCapsuleSys->buttonSprites.sprites[10], NULL);
         }
 
-        ov76_0223D94C(ballCapsuleSys->buttonSprites.sprites[10], param1);
+        BallCapsuleSystem_SetButtonSpriteState(ballCapsuleSys->buttonSprites.sprites[10], touchScreenState);
         break;
-    case 11:
-        if (param1 == TOUCH_BUTTON_PRESSED) {
-            if (ballCapsuleSys->unk_3D4 != 6) {
-                ballCapsuleSys->unk_3D4 = 6;
-                ov76_0223DCB8(ballCapsuleSys, 0);
+    case BALL_CAPSULE_BUTTON_DECIDE:
+        if (touchScreenState == TOUCH_BUTTON_PRESSED) {
+            if (ballCapsuleSys->state != BALL_CAPSULE_SYSTEM_EXIT) {
+                ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_EXIT;
+                BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 0);
                 Sound_PlayEffect(SEQ_SE_DP_PIRORIRO);
             }
 
-            ov76_0223DA00(ballCapsuleSys->buttonSprites.sprites[11], ballCapsuleSys->ballCapsuleEditor.unk_164[0]);
+            ButtonAnimation_Init(ballCapsuleSys->buttonSprites.sprites[11], ballCapsuleSys->ballCapsuleEditor.unk_164[0]);
         }
 
-        ov76_0223D94C(ballCapsuleSys->buttonSprites.sprites[11], param1);
+        BallCapsuleSystem_SetButtonSpriteState(ballCapsuleSys->buttonSprites.sprites[11], touchScreenState);
         break;
-    case 12:
-        if (param1 == TOUCH_BUTTON_PRESSED) {
-            if (ballCapsuleSys->unk_3D4 != 7) {
-                ballCapsuleSys->unk_3D4 = 7;
-                ov76_0223DCB8(ballCapsuleSys, 0);
+    case BALL_CAPSULE_BUTTON_CANCEL:
+        if (touchScreenState == TOUCH_BUTTON_PRESSED) {
+            if (ballCapsuleSys->state != BALL_CAPSULE_SYSTEM_EXIT_EDITOR) {
+                ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_EXIT_EDITOR;
+                BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 0);
                 Sound_PlayEffect(SEQ_SE_DP_DECIDE);
             }
 
-            ov76_0223DA00(ballCapsuleSys->buttonSprites.sprites[12], ballCapsuleSys->ballCapsuleEditor.unk_164[1]);
+            ButtonAnimation_Init(ballCapsuleSys->buttonSprites.sprites[12], ballCapsuleSys->ballCapsuleEditor.unk_164[1]);
         }
 
-        ov76_0223D94C(ballCapsuleSys->buttonSprites.sprites[12], param1);
+        BallCapsuleSystem_SetButtonSpriteState(ballCapsuleSys->buttonSprites.sprites[12], touchScreenState);
         break;
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-    case 6:
-    case 7: {
+    case BALL_CAPSULE_BUTTON_SEAL1:
+    case BALL_CAPSULE_BUTTON_SEAL2:
+    case BALL_CAPSULE_BUTTON_SEAL3:
+    case BALL_CAPSULE_BUTTON_SEAL4:
+    case BALL_CAPSULE_BUTTON_SEAL5:
+    case BALL_CAPSULE_BUTTON_SEAL6:
+    case BALL_CAPSULE_BUTTON_SEAL7:
+    case BALL_CAPSULE_BUTTON_SEAL8: {
         int v1;
 
-        if (param1 == TOUCH_BUTTON_PRESSED) {
+        if (touchScreenState == TOUCH_BUTTON_PRESSED) {
             if (ov76_0223B2F8(ballCapsuleSys) == 0) {
                 Sound_PlayEffect(SEQ_SE_DP_CUSTOM06);
                 Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 15);
             } else {
-                if ((ballCapsuleSys->sealCasePages.currentPageSeals[param0] != 0) && (SealCase_GetSealCount(ballCapsuleSys->sealCounts, ballCapsuleSys->sealCasePages.currentPageSeals[param0] - 1) != 0)) {
-                    ballCapsuleSys->ballCapsuleEditor.unk_00 = ov76_0223B278(ballCapsuleSys, param0);
-                    v1 = SealData_GetNameID(ballCapsuleSys->sealCasePages.currentPageSeals[param0]);
+                if ((ballCapsuleSys->sealCasePages.currentPageSeals[buttonID] != 0) && (SealCase_GetSealCount(ballCapsuleSys->sealCounts, ballCapsuleSys->sealCasePages.currentPageSeals[buttonID] - 1) != 0)) {
+                    ballCapsuleSys->ballCapsuleEditor.unk_00 = ov76_0223B278(ballCapsuleSys, buttonID);
+                    v1 = SealData_GetNameID(ballCapsuleSys->sealCasePages.currentPageSeals[buttonID]);
 
                     Window_SetSealNameMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], v1);
-                    GiveOrTakeSeal(ballCapsuleSys->appData->sealCase, ballCapsuleSys->sealCasePages.currentPageSeals[param0], -1);
-                    BallCapsuleSys_UpdateWindowSealCount(ballCapsuleSys, param0);
+                    GiveOrTakeSeal(ballCapsuleSys->appData->sealCase, ballCapsuleSys->sealCasePages.currentPageSeals[buttonID], -1);
+                    BallCapsuleSys_UpdateWindowSealCount(ballCapsuleSys, buttonID);
                     Sound_PlayEffect(SEQ_SE_DP_BOX02);
                 } else {
-                    if (ballCapsuleSys->sealCasePages.currentPageSeals[param0] != 0) {
+                    if (ballCapsuleSys->sealCasePages.currentPageSeals[buttonID] != 0) {
                         Sound_PlayEffect(SEQ_SE_DP_CUSTOM06);
                         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 16);
                     }
@@ -616,20 +630,20 @@ void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2)
             }
         }
     } break;
-    case 13:
-    case 14:
-    case 15:
-    case 16:
-    case 17:
-    case 18:
-    case 19:
-    case 20: {
+    case BALL_CAPSULE_BUTTON_PLACED_SEAL1:
+    case BALL_CAPSULE_BUTTON_PLACED_SEAL2:
+    case BALL_CAPSULE_BUTTON_PLACED_SEAL3:
+    case BALL_CAPSULE_BUTTON_PLACED_SEAL4:
+    case BALL_CAPSULE_BUTTON_PLACED_SEAL5:
+    case BALL_CAPSULE_BUTTON_PLACED_SEAL6:
+    case BALL_CAPSULE_BUTTON_PLACED_SEAL7:
+    case BALL_CAPSULE_BUTTON_PLACED_SEAL8: {
         int v2;
         int v3;
 
-        if (param1 == TOUCH_BUTTON_PRESSED) {
-            v2 = param0 - 13;
-            ov76_0223B5C4(ballCapsuleSys, param1, v2);
+        if (touchScreenState == TOUCH_BUTTON_PRESSED) {
+            v2 = buttonID - BALL_CAPSULE_BUTTON_MAX;
+            ov76_0223B5C4(ballCapsuleSys, touchScreenState, v2);
             v3 = SealData_GetNameID(ballCapsuleSys->placedSeals[v2].type);
 
             Window_SetSealNameMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], v3);
@@ -647,12 +661,12 @@ BOOL ov76_0223DCB0(BallCapsuleSystem *ballCapsuleSys)
     return ballCapsuleSys->ballCapsuleEditor.unk_184;
 }
 
-void ov76_0223DCB8(BallCapsuleSystem *ballCapsuleSys, BOOL param1)
+void BallCapsuleSystem_SetTouchScreenActive(BallCapsuleSystem *ballCapsuleSys, BOOL active)
 {
-    ballCapsuleSys->ballCapsuleEditor.unk_04 = param1;
+    ballCapsuleSys->ballCapsuleEditor.touchScreenActive = active;
 }
 
-static const TouchScreenRect Unk_ov76_0223EE44[] = {
+static const TouchScreenRect staticButtonRects[] = {
     { 16, 32, 8, 24 },
     { 16, 32, 64, 80 },
     { 40, 56, 8, 24 },
@@ -670,48 +684,43 @@ static const TouchScreenRect Unk_ov76_0223EE44[] = {
 
 void ov76_0223DCC0(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-    const TouchScreenRect v1 = { 0, 0, 0, 0 };
+    int i;
+    const TouchScreenRect defaultTable = { 0, 0, 0, 0 };
 
-    for (v0 = 0; v0 < 13; v0++) {
-        ballCapsuleSys->ballCapsuleEditor.buttonRects[v0] = Unk_ov76_0223EE44[v0];
+    for (i = 0; i < BALL_CAPSULE_BUTTON_MAX; i++) {
+        ballCapsuleSys->ballCapsuleEditor.buttonRects[i] = staticButtonRects[i];
     }
 
-    for (; v0 < 21; v0++) {
-        ballCapsuleSys->ballCapsuleEditor.buttonRects[v0] = v1;
-        ballCapsuleSys->placedSeals[v0 - 13].rect = &ballCapsuleSys->ballCapsuleEditor.buttonRects[v0];
+    for (; i < BALL_CAPSULE_BUTTON_PLACED_SEAL_MAX; i++) {
+        ballCapsuleSys->ballCapsuleEditor.buttonRects[i] = defaultTable;
+        ballCapsuleSys->placedSeals[i - BALL_CAPSULE_BUTTON_PLACED_SEAL1].rect = &ballCapsuleSys->ballCapsuleEditor.buttonRects[i];
     }
 
-    ballCapsuleSys->ballCapsuleEditor.unk_F8 = TouchScreenActions_RegisterHandler(ballCapsuleSys->ballCapsuleEditor.buttonRects, 21, ov76_0223DA34, ballCapsuleSys, HEAP_ID_BALL_CAPSULE_SYSTEM);
+    ballCapsuleSys->ballCapsuleEditor.touchScreenActions = TouchScreenActions_RegisterHandler(ballCapsuleSys->ballCapsuleEditor.buttonRects, BALL_CAPSULE_BUTTON_PLACED_SEAL_MAX, ov76_0223DA34, ballCapsuleSys, HEAP_ID_BALL_CAPSULE_SYSTEM);
 }
 
 void BallCapsuleSystem_InitializeButtons(BallCapsuleSystem *ballCapsuleSys)
 {
-    PokemonSpriteTemplate v0;
-    SpriteAnimFrame v1[10];
-    int v2;
-    int v3;
+    PokemonSpriteTemplate spriteTemplate;
+    SpriteAnimFrame animFrame[10];
 
-    Pokemon_BuildSpriteTemplate(&v0, ballCapsuleSys->mon, 2);
+    Pokemon_BuildSpriteTemplate(&spriteTemplate, ballCapsuleSys->mon, FACE_FRONT);
 
-    v2 = Pokemon_GetValue(ballCapsuleSys->mon, MON_DATA_SPECIES, NULL);
-    v3 = Pokemon_SpriteYOffset(ballCapsuleSys->mon, 2);
+    int species = Pokemon_GetValue(ballCapsuleSys->mon, MON_DATA_SPECIES, NULL);
+    int yOffset = Pokemon_SpriteYOffset(ballCapsuleSys->mon, FACE_FRONT);
 
-    ballCapsuleSys->ballCapsuleEditor.yOffset = v3;
-    PokemonSprite_LoadAnimFrames(ballCapsuleSys->narc, &v1[0], v2, 1);
-    ballCapsuleSys->ballCapsuleEditor.monSprite = PokemonSpriteManager_CreateSprite(ballCapsuleSys->ballCapsuleEditor.monSpriteMan, &v0, 256 - 64, 48 + v3, -0x280, 0, &v1[0], NULL);
+    ballCapsuleSys->ballCapsuleEditor.yOffset = yOffset;
+    PokemonSprite_LoadAnimFrames(ballCapsuleSys->narc, &animFrame[0], species, 1);
+    ballCapsuleSys->ballCapsuleEditor.monSprite = PokemonSpriteManager_CreateSprite(ballCapsuleSys->ballCapsuleEditor.monSpriteMan, &spriteTemplate, 256 - 64, 48 + yOffset, -0x280, 0, &animFrame[0], NULL);
 }
 
 static void BallCapsuleSystem_LoadPokemonSprite(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-    int v1;
-
-    v0 = Pokemon_GetValue(ballCapsuleSys->mon, MON_DATA_SPECIES, NULL);
-    v1 = Pokemon_GetNature(ballCapsuleSys->mon);
+    int species = Pokemon_GetValue(ballCapsuleSys->mon, MON_DATA_SPECIES, NULL);
+    int nature = Pokemon_GetNature(ballCapsuleSys->mon);
 
     PokemonSprite_InitAnim(ballCapsuleSys->ballCapsuleEditor.monSprite, 1);
-    PokemonSprite_LoadAnim(ballCapsuleSys->narc, ballCapsuleSys->ballCapsuleEditor.unk_188, ballCapsuleSys->ballCapsuleEditor.monSprite, v0, 2, 0, 0);
+    PokemonSprite_LoadAnim(ballCapsuleSys->narc, ballCapsuleSys->ballCapsuleEditor.animManager, ballCapsuleSys->ballCapsuleEditor.monSprite, species, 2, 0, 0);
 }
 
 static void ov76_0223DE54(BallCapsuleSystem *ballCapsuleSys)
@@ -723,35 +732,35 @@ static void ov76_0223DE54(BallCapsuleSystem *ballCapsuleSys)
 static BOOL ov76_0223DE78(BallCapsuleSystem *ballCapsuleSys)
 {
     if (PokemonSprite_GetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X) == 0x100) {
-        return 0;
+        return FALSE;
     } else if (PokemonSprite_GetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X) >= 0x100) {
         PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X, 0x100);
         PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_Y, 0x100);
-        return 0;
+        return FALSE;
     } else {
         PokemonSprite_AddAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X, 0x20);
         PokemonSprite_AddAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_Y, 0x20);
         PokemonSprite_CalcScaledYOffset(ballCapsuleSys->ballCapsuleEditor.monSprite, ballCapsuleSys->ballCapsuleEditor.yOffset);
     }
 
-    return 1;
+    return TRUE;
 }
 
 static BOOL ov76_0223DEF4(BallCapsuleSystem *ballCapsuleSys)
 {
     if (PokemonSprite_GetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X) == 0x0) {
-        return 0;
+        return FALSE;
     } else if (PokemonSprite_GetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X) <= 0x0) {
         PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X, 0x0);
         PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_Y, 0x0);
-        return 0;
+        return FALSE;
     } else {
         PokemonSprite_AddAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_X, -0x20);
         PokemonSprite_AddAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_SCALE_Y, -0x20);
         PokemonSprite_CalcScaledYOffset(ballCapsuleSys->ballCapsuleEditor.monSprite, ballCapsuleSys->ballCapsuleEditor.yOffset);
     }
 
-    return 1;
+    return TRUE;
 }
 
 void BallCapsuleSystem_LoadPokemonAnim(BallCapsuleSystem *ballCapsuleSys, int param1)
@@ -766,9 +775,9 @@ void BallCapsuleSystem_DeletePokemonSprite(BallCapsuleSystem *ballCapsuleSys)
 
 static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
 {
-    switch (ballCapsuleSys->unk_3D4) {
+    switch (ballCapsuleSys->state) {
     case 0:
-        ov76_0223DCB8(ballCapsuleSys, 0);
+        BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 0);
         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 0xFFFF);
         BallCapsuleSystem_CreateSealCountWindows(ballCapsuleSys);
         BallCapsuleSystem_PrintSealCountsToWindows(ballCapsuleSys);
@@ -776,10 +785,10 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         BallCapsuleSystem_SaveCapsuleToSelectedSlot(ballCapsuleSys);
         BallCapsuleSystem_LoadSealCounts(ballCapsuleSys);
         ballCapsuleSys->ballCapsuleEditor.unk_18C = 0;
-        ballCapsuleSys->unk_3D4++;
+        ballCapsuleSys->state++;
         break;
     case 1:
-        if (ov76_0223DCB0(ballCapsuleSys) == 1) {
+        if (ov76_0223DCB0(ballCapsuleSys) == TRUE) {
             break;
         }
 
@@ -791,7 +800,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         BallCapsuleSystem_SetButtonDrawFlags(ballCapsuleSys, 1);
         ov76_0223C568(ballCapsuleSys, 1);
         ov76_0223B96C(ballCapsuleSys, 1);
-        ballCapsuleSys->unk_3D4++;
+        ballCapsuleSys->state++;
         break;
     case 2:
         if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
@@ -799,14 +808,14 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         }
         Bg_SetPriority(BG_LAYER_MAIN_3, 1);
         PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x1, 1 << 1, 0, 16, 0, 0);
-        ballCapsuleSys->unk_3D4++;
+        ballCapsuleSys->state++;
         break;
     case 3:
         if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
             break;
         }
-        ov76_0223DCB8(ballCapsuleSys, 1);
-        ballCapsuleSys->unk_3D4++;
+        BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 1);
+        ballCapsuleSys->state++;
         break;
     case 4:
         break;
@@ -816,7 +825,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 1);
             PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 0, 10, 0);
             PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x8, 0xFFFF, 0, 0, 10, 0);
-            ov76_0223DCB8(ballCapsuleSys, 0);
+            BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 0);
             ballCapsuleSys->unk_3E0 = 0;
             BallCapsuleSystem_LoadFirstPokemon(ballCapsuleSys);
             BallCapsuleSystem_InitializeButtons(ballCapsuleSys);
@@ -899,7 +908,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
                 break;
             }
 
-            if (PokemonAnimManager_HasAnimCompleted(ballCapsuleSys->ballCapsuleEditor.unk_188, 0) != TRUE) {
+            if (PokemonAnimManager_HasAnimCompleted(ballCapsuleSys->ballCapsuleEditor.animManager, 0) != TRUE) {
                 break;
             }
 
@@ -955,9 +964,9 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             }
 
             GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 0);
-            ov76_0223DCB8(ballCapsuleSys, 1);
+            BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 1);
             ballCapsuleSys->unk_3DC = 0;
-            ballCapsuleSys->unk_3D4 = 4;
+            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_EDIT_MENU;
             Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 0xFFFF);
             break;
         }
@@ -987,19 +996,19 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
                 Pokemon_SetValue(v8, MON_DATA_BALL_CAPSULE, SealCase_GetCapsuleById(ballCapsuleSys->appData->sealCase, ballCapsuleSys->selectedCapsules[0]));
             }
         }
-        ballCapsuleSys->unk_3D4 = 8;
+        ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_8;
         break;
     case 7: {
         switch (ballCapsuleSys->unk_3DC) {
         case 0:
             if (ov76_0223B78C(ballCapsuleSys) == 0) {
-                ballCapsuleSys->unk_3D4 = 8;
+                ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_8;
                 break;
             }
 
             PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 0, 10, 0);
             PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x8, 0xFFFF, 0, 0, 10, 0);
-            ov76_0223DCB8(ballCapsuleSys, 0);
+            BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 0);
             GXLayers_EngineBToggleLayers(GX_PLANEMASK_BG0, 0);
             ballCapsuleSys->unk_3DC++;
             break;
@@ -1070,24 +1079,24 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
                 ov76_0223B678(ballCapsuleSys);
                 ov76_0223B208(ballCapsuleSys);
                 ov76_0223B69C(ballCapsuleSys, 1);
-                ballCapsuleSys->unk_3D4 = 6;
+                ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_EXIT;
                 break;
             case 2:
-                ballCapsuleSys->unk_3D4 = 4;
+                ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_EDIT_MENU;
                 break;
             case 0:
             default:
                 break;
             }
 
-            ov76_0223DCB8(ballCapsuleSys, 1);
+            BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 1);
             ballCapsuleSys->unk_3DC = 0;
         }
     } break;
     case 8:
         GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 1);
         PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x1, 1 << 1, 0, 0, 16, 0);
-        ballCapsuleSys->unk_3D4++;
+        ballCapsuleSys->state++;
         break;
     case 9:
 
@@ -1104,8 +1113,8 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         ov76_0223C568(ballCapsuleSys, 0);
         ov76_0223B96C(ballCapsuleSys, 0);
         ov76_0223BD30(ballCapsuleSys, -1, 4);
-        ov76_0223DCB8(ballCapsuleSys, 0);
-        ballCapsuleSys->unk_3D4++;
+        BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 0);
+        ballCapsuleSys->state++;
         break;
     case 10:
         if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
@@ -1125,7 +1134,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
     }
 
     if (ballCapsuleSys->ballCapsuleEditor.unk_00 == 0xFF) {
-        TouchScreenActions_HandleAction(ballCapsuleSys->ballCapsuleEditor.unk_F8);
+        TouchScreenActions_HandleAction(ballCapsuleSys->ballCapsuleEditor.touchScreenActions);
     } else {
         u32 v11, v12;
         int v13;
@@ -1170,12 +1179,12 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
 
 static BOOL ov76_0223E8A4(BallCapsuleSystem *ballCapsuleSys)
 {
-    switch (ballCapsuleSys->unk_3D4) {
+    switch (ballCapsuleSys->state) {
     case 0:
-        ballCapsuleSys->unk_3D4++;
+        ballCapsuleSys->state++;
     case 1:
-        ov76_0223CE64();
-        ballCapsuleSys->unk_3D4++;
+        BallCapsuleSystem_ScreeFadeOut();
+        ballCapsuleSys->state++;
         break;
     case 2:
         if (IsScreenFadeDone() != 1) {
@@ -1218,15 +1227,15 @@ void BallCapsuleSystem_UnsetCapsule(BallCapsuleSystem *ballCapsuleSys, int param
 
 static BOOL ov76_0223E950(BallCapsuleSystem *ballCapsuleSys)
 {
-    switch (ballCapsuleSys->unk_3D4) {
+    switch (ballCapsuleSys->state) {
     case 0:
         BallCapsuleSystem_UnsetCapsule(ballCapsuleSys, ballCapsuleSys->selectedCapsules[0]);
         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 9);
-        ballCapsuleSys->unk_3D4++;
+        ballCapsuleSys->state++;
         break;
     case 1:
         if (gSystem.pressedKeys & (0x1 | 0x2 | 0x400 | 0x800 | 0x40 | 0x80 | 0x20 | 0x10)) {
-            ballCapsuleSys->unk_3D4++;
+            ballCapsuleSys->state++;
         }
         break;
     case 2:
@@ -1243,18 +1252,18 @@ static BOOL ov76_0223E950(BallCapsuleSystem *ballCapsuleSys)
 
 static BOOL ov76_0223E9C4(BallCapsuleSystem *ballCapsuleSys)
 {
-    switch (ballCapsuleSys->unk_3D4) {
+    switch (ballCapsuleSys->state) {
     case 0:
         ManagedSprite_SetPriority(ballCapsuleSys->unk_2F4[0], 25);
         ManagedSprite_SetPriority(ballCapsuleSys->unk_2F4[1], 20);
         ManagedSprite_SetAnim(ballCapsuleSys->unk_2F4[0], 1);
         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 10);
         ManagedSprite_SetDrawFlag(ballCapsuleSys->unk_2F4[1], 1);
-        ballCapsuleSys->unk_3D4++;
+        ballCapsuleSys->state++;
     case 1: {
         BOOL v0;
 
-        v0 = ov76_0223D574(&(ballCapsuleSys->selectedCapsules[1]));
+        v0 = BallCapsuleSystem_MoveCursor(&(ballCapsuleSys->selectedCapsules[1]));
 
         if (v0 == 1) {
             ov76_0223D600(ballCapsuleSys, 1, 0);
@@ -1264,18 +1273,18 @@ static BOOL ov76_0223E9C4(BallCapsuleSystem *ballCapsuleSys)
             BallCapsuleSys_SwapCapsules(ballCapsuleSys, ballCapsuleSys->selectedCapsules[0], ballCapsuleSys->selectedCapsules[1]);
             ov76_0223D600(ballCapsuleSys, 1, 1);
             Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 11);
-            ballCapsuleSys->unk_3D4 = 2;
+            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_WAIT_FOR_FADE_IN;
             Sound_PlayEffect(SEQ_SE_CONFIRM);
         } else if (gSystem.pressedKeys & PAD_BUTTON_B) {
             ManagedSprite_SetDrawFlag(ballCapsuleSys->unk_2F4[1], 0);
             ov76_0223D600(ballCapsuleSys, 0, 1);
-            ballCapsuleSys->unk_3D4 = 3;
+            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_MAIN;
             Sound_PlayEffect(SEQ_SE_DP_DECIDE);
         }
     } break;
     case 2:
         if (gSystem.pressedKeys & (0x1 | 0x2 | 0x400 | 0x800 | 0x40 | 0x80 | 0x20 | 0x10)) {
-            ballCapsuleSys->unk_3D4 = 3;
+            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_MAIN;
         }
         break;
     case 3:

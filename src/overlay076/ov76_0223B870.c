@@ -62,8 +62,8 @@ void BallCapsuleSystem_CreateSealCountWindows(BallCapsuleSystem *ballCapsuleSys)
 void BallCapsuleSys_DeleteSealCountWindows(BallCapsuleSystem *ballCapsuleSys);
 void Window_SetSealNameMessage(Window *param0, int param1);
 void ov76_0223CE2C(void);
-void ov76_0223CE44(void);
-void ov76_0223CE64(void);
+void BallCapsuleSystem_ScreenFadeIn(void);
+void BallCapsuleSystem_ScreeFadeOut(void);
 void ov76_0223CE84(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
 void ov76_0223CF24(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
 void ov76_0223CF88(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
@@ -700,7 +700,7 @@ void ov76_0223C4AC(BallCapsuleSystem *ballCapsuleSys)
 
 void ov76_0223C544(BallCapsuleSystem *ballCapsuleSys)
 {
-    if (ballCapsuleSys->ballCapsuleEditor.unk_04 == 0) {
+    if (ballCapsuleSys->ballCapsuleEditor.touchScreenActive == FALSE) {
         return;
     }
 
@@ -1012,17 +1012,17 @@ void ov76_0223CE2C(void)
     GXLayers_EngineBToggleLayers(GX_PLANEMASK_OBJ, 1);
 }
 
-void ov76_0223CE44(void)
+void BallCapsuleSystem_ScreenFadeIn(void)
 {
     StartScreenFade(FADE_BOTH_SCREENS, FADE_TYPE_BRIGHTNESS_IN, FADE_TYPE_BRIGHTNESS_IN, COLOR_BLACK, 6, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
 }
 
-void ov76_0223CE64(void)
+void BallCapsuleSystem_ScreeFadeOut(void)
 {
     StartScreenFade(FADE_BOTH_SCREENS, FADE_TYPE_BRIGHTNESS_OUT, FADE_TYPE_BRIGHTNESS_OUT, COLOR_BLACK, 6, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
 }
 
-void ov76_0223CE84(BallCapsuleSystem *ballCapsuleSys, NARC *param1)
+void ov76_0223CE84(BallCapsuleSystem *ballCapsuleSys, NARC *narc)
 {
     int v0 = 91;
     int v1 = 268;
@@ -1030,19 +1030,19 @@ void ov76_0223CE84(BallCapsuleSystem *ballCapsuleSys, NARC *param1)
     int v3 = 288;
     int v4 = 2;
 
-    Graphics_LoadTilesToBgLayerFromOpenNARC(param1, v1, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
-    Graphics_LoadTilemapToBgLayerFromOpenNARC(param1, v2, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
+    Graphics_LoadTilesToBgLayerFromOpenNARC(narc, v1, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
+    Graphics_LoadTilemapToBgLayerFromOpenNARC(narc, v2, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
     PaletteData_LoadBufferFromFileStart(ballCapsuleSys->ballCapsuleEditor.paletteData, v0, v3, HEAP_ID_BALL_CAPSULE_SYSTEM, 0, 0x20 * 2, 0);
 
     v1 = 269;
     v2 = 285;
     v4 = 3;
 
-    Graphics_LoadTilesToBgLayerFromOpenNARC(param1, v1, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
-    Graphics_LoadTilemapToBgLayerFromOpenNARC(param1, v2, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
+    Graphics_LoadTilesToBgLayerFromOpenNARC(narc, v1, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
+    Graphics_LoadTilemapToBgLayerFromOpenNARC(narc, v2, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
 }
 
-void ov76_0223CF24(BallCapsuleSystem *ballCapsuleSys, NARC *param1)
+void ov76_0223CF24(BallCapsuleSystem *ballCapsuleSys, NARC *narc)
 {
     int v0 = 91;
     int v1 = 267;
@@ -1050,12 +1050,12 @@ void ov76_0223CF24(BallCapsuleSystem *ballCapsuleSys, NARC *param1)
     int v3 = 287;
     int v4 = 5;
 
-    Graphics_LoadTilesToBgLayerFromOpenNARC(param1, v1, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
-    Graphics_LoadTilemapToBgLayerFromOpenNARC(param1, v2, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
+    Graphics_LoadTilesToBgLayerFromOpenNARC(narc, v1, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
+    Graphics_LoadTilemapToBgLayerFromOpenNARC(narc, v2, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
     PaletteData_LoadBufferFromFileStart(ballCapsuleSys->ballCapsuleEditor.paletteData, v0, v3, HEAP_ID_BALL_CAPSULE_SYSTEM, 1, 0x20 * 2, 0);
 }
 
-void ov76_0223CF88(BallCapsuleSystem *ballCapsuleSys, NARC *param1)
+void ov76_0223CF88(BallCapsuleSystem *ballCapsuleSys, NARC *narc)
 {
     int v0 = 91;
     int v1 = 267;
@@ -1063,8 +1063,8 @@ void ov76_0223CF88(BallCapsuleSystem *ballCapsuleSys, NARC *param1)
     int v3 = 287;
     int v4 = 7;
 
-    Graphics_LoadTilesToBgLayerFromOpenNARC(param1, v1, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
-    Graphics_LoadTilemapToBgLayerFromOpenNARC(param1, v2, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
+    Graphics_LoadTilesToBgLayerFromOpenNARC(narc, v1, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
+    Graphics_LoadTilemapToBgLayerFromOpenNARC(narc, v2, ballCapsuleSys->ballCapsuleEditor.bgConfig, v4, 0, 0, 1, HEAP_ID_BALL_CAPSULE_SYSTEM);
     PaletteData_LoadBufferFromFileStart(ballCapsuleSys->ballCapsuleEditor.paletteData, v0, v3, HEAP_ID_BALL_CAPSULE_SYSTEM, 1, 0x20 * 2, 0);
 }
 
@@ -1180,20 +1180,19 @@ void BallCapsuleSys_CreateStaticButtons(BallCapsuleSystem *ballCapsuleSys)
     }
 }
 
-void BallCapsuleSystem_SetButtonDrawFlags(BallCapsuleSystem *ballCapsuleSys, int param1)
+void BallCapsuleSystem_SetButtonDrawFlags(BallCapsuleSystem *ballCapsuleSys, BOOL draw)
 {
     for (int i = 0; i < BALL_CAPSULE_BUTTON_MAX; i++) {
         if (ballCapsuleSys->buttonSprites.sprites[i] == NULL) {
             continue;
         }
 
-        ManagedSprite_SetDrawFlag(ballCapsuleSys->buttonSprites.sprites[i], param1);
+        ManagedSprite_SetDrawFlag(ballCapsuleSys->buttonSprites.sprites[i], draw);
     }
 }
 
 void BallCapsuleSystem_NOP(BallCapsuleSystem *ballCapsuleSys)
 {
-    (void)ballCapsuleSys;
 }
 
 void BallCapsuleSystem_DeleteStaticButtons(BallCapsuleSystem *ballCapsuleSys)

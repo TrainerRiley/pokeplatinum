@@ -27,6 +27,9 @@
 #define SEALS_PER_PAGE                   8
 #define BALL_CAPSULE_INVALID_PARTY_INDEX 0xff
 
+#define CAPSULES_PER_ROW    4
+#define CAPSULES_PER_COLUMN 3
+
 // Static buttons (seal selectors, seal pages, etc.)
 enum BallCapsuleButtons {
     BALL_CAPSULE_BUTTON_SEAL1 = 0,
@@ -98,7 +101,7 @@ typedef struct {
 
 typedef struct {
     int unk_00;
-    BOOL unk_04;
+    BOOL touchScreenActive;
     SpriteSystem *spriteSys;
     SpriteManager *spriteMan;
     BgConfig *bgConfig;
@@ -110,7 +113,7 @@ typedef struct {
     PokemonSprite *monSprite;
     int yOffset;
     UnkStruct_ov22_02258A48 unk_DC;
-    TouchScreenActions *unk_F8;
+    TouchScreenActions *touchScreenActions;
     TouchScreenRect buttonRects[BALL_CAPSULE_BUTTON_PLACED_SEAL_MAX];
     UnkStruct_02015920 *unk_150;
     UnkStruct_ov12_02235FE0 *unk_154;
@@ -120,7 +123,7 @@ typedef struct {
     FontOAM *unk_164[2];
     CharTransferAllocation unk_16C[2];
     BOOL unk_184;
-    PokemonAnimManager *unk_188;
+    PokemonAnimManager *animManager;
     BOOL unk_18C;
 } BallCapsuleEditor;
 
@@ -168,7 +171,7 @@ typedef struct {
 
     u8 padding_3D0[4];
 
-    int unk_3D4;
+    int state;
     int unk_3D8;
     int unk_3DC;
     int unk_3E0;
