@@ -30,6 +30,13 @@
 #define CAPSULES_PER_ROW    4
 #define CAPSULES_PER_COLUMN 3
 
+enum BallCapsuleStatus {
+    BALL_CAPSULE_EMPTY = 0,
+    BALL_CAPSULE_EDITED,
+    BALL_CAPSULE_EDITED_AND_ASSIGNED,
+    BALL_CAPSULE_EMPTY_AND_ASSIGNED,
+};
+
 // Static buttons (seal selectors, seal pages, etc.)
 enum BallCapsuleButtons {
     BALL_CAPSULE_BUTTON_SEAL1 = 0,

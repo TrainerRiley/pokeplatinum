@@ -32,6 +32,7 @@
 #include "pokemon_sprite.h"
 #include "render_window.h"
 #include "screen_fade.h"
+#include "seals.h"
 #include "sound_playback.h"
 #include "sprite_system.h"
 #include "string_list.h"
@@ -65,18 +66,14 @@ void BallCapsuleSystem_LoadSelectedCapsule(BallCapsuleSystem *ballCapsuleSys)
 
 void BallCapsuleSystem_LoadSealCounts(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-
-    for (v0 = 0; v0 < (80 + 1); v0++) {
-        ballCapsuleSys->currentSealCounts[v0] = SealCase_GetSealCount(ballCapsuleSys->sealCounts, v0);
+    for (int i = 0; i < SEAL_ID_MAX; i++) {
+        ballCapsuleSys->currentSealCounts[i] = SealCase_GetSealCount(ballCapsuleSys->sealCounts, i);
     }
 }
 
 void BallCapsuleSystem_SetSealCounts(BallCapsuleSystem *ballCapsuleSys)
 {
-    int i;
-
-    for (i = 0; i < (80 + 1); i++) {
+    for (int i = 0; i < (SEAL_ID_MAX); i++) {
         SealCase_SetSealQuantity(ballCapsuleSys->sealCounts, i, ballCapsuleSys->currentSealCounts[i]);
     }
 }
@@ -89,74 +86,67 @@ void BallCapsuleSystem_SetDefaultBlend(void)
 
 void BallCapsuleSystem_LoadFirstPokemon(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-    int v1;
-    Pokemon *v2;
+    Pokemon *mon;
 
     if (ballCapsuleSys->capsuleData[ballCapsuleSys->selectedCapsules[0]].partyIndex != BALL_CAPSULE_INVALID_PARTY_INDEX) {
-        v2 = ballCapsuleSys->appData->mons[ballCapsuleSys->capsuleData[ballCapsuleSys->selectedCapsules[0]].partyIndex];
-        Pokemon_Copy(v2, ballCapsuleSys->mon);
+        mon = ballCapsuleSys->appData->mons[ballCapsuleSys->capsuleData[ballCapsuleSys->selectedCapsules[0]].partyIndex];
+        Pokemon_Copy(mon, ballCapsuleSys->mon);
 
         return;
     }
 
-    for (v0 = 0; v0 < ballCapsuleSys->appData->partyCount; v0++) {
-        v2 = ballCapsuleSys->appData->mons[v0];
-        v1 = Pokemon_GetValue(v2, MON_DATA_IS_EGG, NULL);
+    for (int i = 0; i < ballCapsuleSys->appData->partyCount; i++) {
+        mon = ballCapsuleSys->appData->mons[i];
+        int isEgg = Pokemon_GetValue(mon, MON_DATA_IS_EGG, NULL);
 
-        if (v1 != 0) {
+        if (isEgg != 0) {
             continue;
         }
 
-        Pokemon_Copy(v2, ballCapsuleSys->mon);
+        Pokemon_Copy(mon, ballCapsuleSys->mon);
         break;
     }
 }
 
-int BallCapsule_ContainsSeals(BallCapsule *param0)
+int BallCapsule_ContainsSeals(BallCapsule *ballCapsule)
 {
-    int v0;
-    int v1 = 0;
-    int v2;
-    BallSeal *v3;
+    int i;
+    int containsSeals = 0;
+    int numSeals = 0;
 
-    v2 = 0;
+    for (i = 0; i < SEALS_PER_CAPSULE; i++) {
+        BallSeal *seals = BallCapsule_GetBallSeals(ballCapsule, i);
 
-    for (v0 = 0; v0 < 8; v0++) {
-        v3 = BallCapsule_GetBallSeals(param0, v0);
-
-        if (BallSeal_GetSealType(v3) != 0) {
-            v2++;
+        if (BallSeal_GetSealType(seals) != 0) {
+            numSeals++;
         }
     }
 
-    if (v2 != 0) {
-        v1 = 1;
+    if (numSeals != 0) {
+        containsSeals = 1;
     }
 
-    return v1;
+    return containsSeals;
 }
 
-int ov76_0223D45C(BallCapsuleSystem *ballCapsuleSys, int param1)
+int BallCapsuleSystem_GetCapsuleStatus(BallCapsuleSystem *ballCapsuleSys, int capsuleIndex)
 {
-    int v0;
-    int v1;
-    int v2;
+    int capsuleState;
 
-    v0 = ballCapsuleSys->editData[param1].partyIndex;
-    v1 = ballCapsuleSys->editData[param1].hasSeals;
+    int partyIndex = ballCapsuleSys->editData[capsuleIndex].partyIndex;
+    int hasSeals = ballCapsuleSys->editData[capsuleIndex].hasSeals;
 
-    if ((v0 == BALL_CAPSULE_INVALID_PARTY_INDEX) && (v1 == 0)) {
-        v2 = 0;
-    } else if ((v0 == BALL_CAPSULE_INVALID_PARTY_INDEX) && (v1 == 1)) {
-        v2 = 1;
-    } else if ((v0 != BALL_CAPSULE_INVALID_PARTY_INDEX) && (v1 == 1)) {
-        v2 = 2;
+    if ((partyIndex == BALL_CAPSULE_INVALID_PARTY_INDEX) && (hasSeals == FALSE)) {
+        capsuleState = BALL_CAPSULE_EMPTY;
+    } else if ((partyIndex == BALL_CAPSULE_INVALID_PARTY_INDEX) && (hasSeals == TRUE)) {
+        capsuleState = BALL_CAPSULE_EDITED;
+    } else if ((partyIndex != BALL_CAPSULE_INVALID_PARTY_INDEX) && (hasSeals == TRUE)) {
+        capsuleState = BALL_CAPSULE_EDITED_AND_ASSIGNED;
     } else {
-        v2 = 3;
+        capsuleState = BALL_CAPSULE_EMPTY_AND_ASSIGNED;
     }
 
-    return v2;
+    return capsuleState;
 }
 
 static void ov76_0223D494(BallCapsuleSystem *ballCapsuleSys, int param1, int param2, int param3)
@@ -271,22 +261,22 @@ static BOOL BallCapsuleSystem_MoveCursor(int *index)
     return TRUE;
 }
 
-static void ov76_0223D600(BallCapsuleSystem *ballCapsuleSys, int param1, BOOL param2)
+static void ov76_0223D600(BallCapsuleSystem *ballCapsuleSys, int selectIndex, BOOL param2)
 {
-    s16 v0, v1;
-    int v2 = 0;
+    s16 x, y;
+    int otherIndex = 0;
 
-    if (param1 == 0) {
-        v2 = 1;
+    if (selectIndex == 0) {
+        otherIndex = 1;
     }
 
-    GetCapsulePosition(ballCapsuleSys->selectedCapsules[param1], &v0, &v1);
-    ManagedSprite_SetPositionXY(ballCapsuleSys->unk_2F4[param1], v0, v1);
+    GetCapsulePosition(ballCapsuleSys->selectedCapsules[selectIndex], &x, &y);
+    ManagedSprite_SetPositionXY(ballCapsuleSys->unk_2F4[selectIndex], x, y);
 
-    if (param2 == 1) {
-        ballCapsuleSys->selectedCapsules[v2] = ballCapsuleSys->selectedCapsules[param1];
-        GetCapsulePosition(ballCapsuleSys->selectedCapsules[v2], &v0, &v1);
-        ManagedSprite_SetPositionXY(ballCapsuleSys->unk_2F4[v2], v0, v1);
+    if (param2 == TRUE) {
+        ballCapsuleSys->selectedCapsules[otherIndex] = ballCapsuleSys->selectedCapsules[selectIndex];
+        GetCapsulePosition(ballCapsuleSys->selectedCapsules[otherIndex], &x, &y);
+        ManagedSprite_SetPositionXY(ballCapsuleSys->unk_2F4[otherIndex], x, y);
     }
 }
 
@@ -763,7 +753,7 @@ static BOOL ov76_0223DEF4(BallCapsuleSystem *ballCapsuleSys)
     return TRUE;
 }
 
-void BallCapsuleSystem_LoadPokemonAnim(BallCapsuleSystem *ballCapsuleSys, int param1)
+void BallCapsuleSystem_SetPokemonHidden(BallCapsuleSystem *ballCapsuleSys, int param1)
 {
     PokemonSprite_SetAttribute(ballCapsuleSys->ballCapsuleEditor.monSprite, MON_SPRITE_HIDE, param1);
 }
@@ -829,7 +819,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             ballCapsuleSys->unk_3E0 = 0;
             BallCapsuleSystem_LoadFirstPokemon(ballCapsuleSys);
             BallCapsuleSystem_InitializeButtons(ballCapsuleSys);
-            BallCapsuleSystem_LoadPokemonAnim(ballCapsuleSys, 1);
+            BallCapsuleSystem_SetPokemonHidden(ballCapsuleSys, 1);
             Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 13);
             ballCapsuleSys->unk_3DC++;
             break;
@@ -882,7 +872,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             if (ov12_02237810(ballCapsuleSys->ballCapsuleEditor.ballRotation) == 1) {
                 ov76_0223DE78(ballCapsuleSys);
                 ov12_022363B4(ballCapsuleSys->ballCapsuleEditor.unk_154);
-                BallCapsuleSystem_LoadPokemonAnim(ballCapsuleSys, 0);
+                BallCapsuleSystem_SetPokemonHidden(ballCapsuleSys, 0);
                 ov76_0223DE54(ballCapsuleSys);
                 Sound_PlayEffect(SEQ_SE_DP_CUSTOM05);
                 ballCapsuleSys->unk_3DC++;
@@ -952,7 +942,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             if ((ov12_022377F8(ballCapsuleSys->ballCapsuleEditor.ballRotation) == 0) && (v6 == 0)) {
                 PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 10, 0, 0);
                 PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x8, 0xFFFF, 0, 10, 0, 0);
-                BallCapsuleSystem_LoadPokemonAnim(ballCapsuleSys, 1);
+                BallCapsuleSystem_SetPokemonHidden(ballCapsuleSys, 1);
                 BallCapsuleSystem_DeletePokemonSprite(ballCapsuleSys);
                 ov12_0223783C(ballCapsuleSys->ballCapsuleEditor.ballRotation);
                 ballCapsuleSys->unk_3DC++;
@@ -1187,7 +1177,7 @@ static BOOL ov76_0223E8A4(BallCapsuleSystem *ballCapsuleSys)
         ballCapsuleSys->state++;
         break;
     case 2:
-        if (IsScreenFadeDone() != 1) {
+        if (IsScreenFadeDone() != TRUE) {
             break;
         }
 
@@ -1210,15 +1200,11 @@ static BOOL ov76_0223E8A4(BallCapsuleSystem *ballCapsuleSys)
 
 void BallCapsuleSystem_UnsetCapsule(BallCapsuleSystem *ballCapsuleSys, int param1)
 {
-    int v0;
-    int v1;
-    int v2 = 0;
-    BallCapsule v3;
+    int capsuleNone = 0;
+    int partyIndex = ballCapsuleSys->capsuleData[param1].partyIndex;
 
-    v1 = ballCapsuleSys->capsuleData[param1].partyIndex;
-
-    if (v1 != BALL_CAPSULE_INVALID_PARTY_INDEX) {
-        Pokemon_SetValue(ballCapsuleSys->appData->mons[v1], MON_DATA_BALL_CAPSULE_ID, (u8 *)&v2);
+    if (partyIndex != BALL_CAPSULE_INVALID_PARTY_INDEX) {
+        Pokemon_SetValue(ballCapsuleSys->appData->mons[partyIndex], MON_DATA_BALL_CAPSULE_ID, (u8 *)&capsuleNone);
     }
 
     ballCapsuleSys->capsuleData[param1].partyIndex = BALL_CAPSULE_INVALID_PARTY_INDEX;
@@ -1283,7 +1269,7 @@ static BOOL ov76_0223E9C4(BallCapsuleSystem *ballCapsuleSys)
         }
     } break;
     case 2:
-        if (gSystem.pressedKeys & (0x1 | 0x2 | 0x400 | 0x800 | 0x40 | 0x80 | 0x20 | 0x10)) {
+        if (gSystem.pressedKeys & (PAD_BUTTON_A | PAD_BUTTON_B | PAD_BUTTON_X | PAD_BUTTON_Y | PAD_KEY_UP | PAD_KEY_DOWN | PAD_KEY_LEFT | PAD_KEY_RIGHT)) {
             ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_MAIN;
         }
         break;
@@ -1304,7 +1290,7 @@ static BOOL ov76_0223E9C4(BallCapsuleSystem *ballCapsuleSys)
 
 static BOOL ov76_0223EB1C(BallCapsuleSystem *ballCapsuleSys)
 {
-    return 0;
+    return FALSE;
 }
 
 void ov76_0223EB20(int param0)

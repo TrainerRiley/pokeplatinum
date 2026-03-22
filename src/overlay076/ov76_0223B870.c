@@ -421,7 +421,7 @@ void ov76_0223BF74(BgConfig *param0, Window *param1, int param2, BallCapsuleSyst
     int v2, v3, v4, v5, v6, v7;
     int v8[4];
 
-    v1 = ov76_0223D45C(ballCapsuleSys, param4);
+    v1 = BallCapsuleSystem_GetCapsuleStatus(ballCapsuleSys, param4);
     v6 = ((9 * 8) + ((27 * 2) + (0 + ((1 + (18 + 12)) + 9))));
     v2 = 21;
     v4 = 9;

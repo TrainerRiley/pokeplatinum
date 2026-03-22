@@ -26,6 +26,6 @@ void ov76_0223B758(BallCapsuleSystem *ballCapsuleSys, int param1);
 BOOL ov76_0223B78C(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223B7D4(BallCapsuleSystem *ballCapsuleSys, int param1);
 void ov76_0223B808(BallCapsuleSystem *ballCapsuleSys);
-void ov76_0223B848(BallCapsule *param0, BallCapsuleSystem *ballCapsuleSys);
+void ov76_0223B848(BallCapsule *ballCapsule, BallCapsuleSystem *ballCapsuleSys);
 
 #endif // POKEPLATINUM_OV76_0223B140_H
