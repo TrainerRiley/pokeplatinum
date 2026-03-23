@@ -19,7 +19,7 @@ int BallCapsule_ContainsSeals(BallCapsule *ballCapsule);
 int BallCapsuleSystem_GetCapsuleStatus(BallCapsuleSystem *ballCapsuleSys, int param1);
 BOOL ov76_0223D550(BallCapsuleSystem *ballCapsuleSys);
 void BallCapsuleSystem_SetButtonSpriteState(ManagedSprite *param0, enum TouchScreenButtonState screenState);
-void ov76_0223DA34(u32 param0, enum TouchScreenButtonState param1, void *param2);
+void BallCapsuleSystem_EditorTouchScreenHandler(u32 param0, enum TouchScreenButtonState param1, void *param2);
 BOOL ov76_0223DCB0(BallCapsuleSystem *ballCapsuleSys);
 void BallCapsuleSystem_SetTouchScreenActive(BallCapsuleSystem *ballCapsuleSys, BOOL param1);
 void ov76_0223DCC0(BallCapsuleSystem *ballCapsuleSys);

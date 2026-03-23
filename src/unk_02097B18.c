@@ -226,7 +226,7 @@ static int BallCapsuleApp_Exit(ApplicationManager *appMan, int *param1)
     PaletteData_Free(ballCapsuleSys->ballCapsuleEditor.paletteData);
     BallCapsuleAppData_SetSelectedCapsuleIndex(ballCapsuleSys->appData, ballCapsuleSys->selectedCapsules[0]);
     Heap_Free(ballCapsuleSys->mon);
-    ov76_0223B678(ballCapsuleSys);
+    BallCapsuleSystem_RemoveTappedSeal(ballCapsuleSys);
     TouchScreenActions_Free(ballCapsuleSys->ballCapsuleEditor.touchScreenActions);
     PokemonSpriteManager_Free(ballCapsuleSys->ballCapsuleEditor.monSpriteMan);
     PokemonAnimManager_Free(ballCapsuleSys->ballCapsuleEditor.animManager);

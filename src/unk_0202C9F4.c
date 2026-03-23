@@ -34,10 +34,10 @@ BallCapsule *SealCase_GetCapsuleById(SealCase *sealCase, int capsuleId)
     return &sealCase->capsules[capsuleId];
 }
 
-void SealCase_CopyCapsuleFromId(SealCase *sealCase, BallCapsule *dst, int capsuleId)
+void SealCase_CopyCapsuleToSealCase(SealCase *sealCase, BallCapsule *src, int capsuleId)
 {
     GF_ASSERT(capsuleId < TOTAL_CAPSULES);
-    BallCapsule_Copy(dst, SealCase_GetCapsuleById(sealCase, capsuleId));
+    BallCapsule_Copy(src, SealCase_GetCapsuleById(sealCase, capsuleId));
 }
 
 BallSeal *BallCapsule_GetBallSeals(BallCapsule *ballCapsule, int sealId)

@@ -10,7 +10,7 @@ void SealCase_Init(SealCase *sealCase);
 void BallCapsule_Copy(const BallCapsule *src, BallCapsule *dst);
 SealCase *SaveData_GetSealCase(SaveData *saveData);
 BallCapsule *SealCase_GetCapsuleById(SealCase *sealCase, int capsuleId);
-void SealCase_CopyCapsuleFromId(SealCase *sealCase, BallCapsule *dst, int capsuleId);
+void SealCase_CopyCapsuleToSealCase(SealCase *sealCase, BallCapsule *src, int capsuleId);
 BallSeal *BallCapsule_GetBallSeals(BallCapsule *ballCapsule, int sealNum);
 u8 BallSeal_GetSealType(const BallSeal *seal);
 u8 BallSeal_GetX(const BallSeal *seal);
