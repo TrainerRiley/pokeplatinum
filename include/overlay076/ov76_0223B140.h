@@ -8,21 +8,21 @@
 #include "sprite_system.h"
 #include "touch_screen.h"
 
-void ov76_0223B184(TouchScreenRect *rect, ManagedSprite *param1, BOOL param2);
-void ov76_0223B1E0(BallCapsuleSystem *ballCapsuleSys);
-void ov76_0223B208(BallCapsuleSystem *ballCapsuleSys);
+void UpdatePlacedSealPos(TouchScreenRect *rect, ManagedSprite *param1, BOOL param2);
+void BallCapsuleSystem_UpdatePlacedSealSpriteOffsets(BallCapsuleSystem *ballCapsuleSys);
+void BallCapsuleSystem_LoadSelectedCapsulePlacedSeals(BallCapsuleSystem *ballCapsuleSys);
 int BallCapsuleSystem_AddPlacedSeal(BallCapsuleSystem *ballCapsuleSys, u8 param1);
 BOOL BallCapsuleSystem_AnyPlacedSealTapped(BallCapsuleSystem *ballCapsuleSys);
 void BallCapsuleSystem_IncreasePlacedSealPriority(BallCapsuleSystem *ballCapsuleSys, u8 param1);
-void ov76_0223B36C(BallCapsuleSystem *ballCapsuleSys, u8 param1, u8 param2);
-void ov76_0223B400(BallCapsuleSystem *ballCapsuleSys);
-BOOL ov76_0223B52C(BallCapsuleSystem *ballCapsuleSys, u8 param1);
-BOOL ov76_0223B5C4(BallCapsuleSystem *ballCapsuleSys, enum TouchScreenButtonState state, u8 param2);
+void BallCapsuleSystem_LoadPlacedSealSpriteData(BallCapsuleSystem *ballCapsuleSys, u8 param1, u8 param2);
+void BallCapsuleSystem_SortPlacedSeals(BallCapsuleSystem *ballCapsuleSys);
+BOOL BallCapsuleSystem_CreatePlacedSealSprite(BallCapsuleSystem *ballCapsuleSys, u8 param1);
+BOOL BallCapsuleSystem_HandlePlacedSealTouchEvent(BallCapsuleSystem *ballCapsuleSys, enum TouchScreenButtonState state, u8 param2);
 void BallCapsuleSystem_RemoveTappedSeal(BallCapsuleSystem *ballCapsuleSys);
 void BallCapsuleSystem_SetDrawFlagOnTappedSeal(BallCapsuleSystem *ballCapsuleSys, int param1);
-BOOL ov76_0223B6C4(BallCapsuleSystem *ballCapsuleSys, int param1);
+BOOL BallCapsuleSystem_IsPlacedSealOnBall(BallCapsuleSystem *ballCapsuleSys, int param1);
 void BallCapsuleSystem_RemovePlacedSeal(BallCapsuleSystem *ballCapsuleSys, int param1);
-void ov76_0223B758(BallCapsuleSystem *ballCapsuleSys, int param1);
+void BallCapsuleSystem_SetPlacedSealOamMode(BallCapsuleSystem *ballCapsuleSys, int param1);
 BOOL BallCapsuleSystem_HasCurrentCapsuleBeenEdited(BallCapsuleSystem *ballCapsuleSys);
 void BallCapsuleSystem_SetSealPosToSpritePos(BallCapsuleSystem *ballCapsuleSys, int param1);
 void BallCapsuleSystem_SaveSelectedCapsuleToSealCase(BallCapsuleSystem *ballCapsuleSys);

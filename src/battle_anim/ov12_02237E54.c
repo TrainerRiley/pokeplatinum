@@ -3,6 +3,8 @@
 #include <nitro.h>
 #include <string.h>
 
+#include "constants/ball_capsule.h"
+
 #include "struct_defs/seal_case.h"
 
 #include "unk_0202C9F4.h"
@@ -24,7 +26,7 @@ int ov12_02237E80(BallSeal *param0)
     int v0;
     s16 v1 = BallSeal_GetX(param0);
     s16 v2 = BallSeal_GetY(param0);
-    v0 = ov12_02237E54(v1, v2, 190, 70);
+    v0 = ov12_02237E54(v1, v2, BALL_CAPSULE_EDITOR_BALL_CENTER_X, BALL_CAPSULE_EDITOR_BALL_CENTER_Y);
 
     return v0;
 }

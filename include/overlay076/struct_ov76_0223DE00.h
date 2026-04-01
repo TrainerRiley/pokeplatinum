@@ -131,7 +131,7 @@ typedef struct {
     CharTransferAllocation unk_16C[2];
     BOOL unk_184;
     PokemonAnimManager *animManager;
-    BOOL unk_18C;
+    BOOL dirty;
 } BallCapsuleEditor;
 
 typedef struct {
@@ -167,7 +167,7 @@ typedef struct {
     ManagedSprite *partyIcons[MAX_PARTY_SIZE];
     ManagedSprite *unk_314[4];
 
-    PlacedSeal placedSeals[SEALS_PER_CAPSULE];
+    PlacedSeal currentCapsuleSeals[SEALS_PER_CAPSULE];
 
     // unused
     int unk_3A4[8];

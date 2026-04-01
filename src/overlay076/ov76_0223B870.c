@@ -59,7 +59,7 @@ void BallCapsuleSystem_DeleteSprites(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223C8EC(BgConfig *param0, PaletteData *param1, int param2);
 void ov76_0223C974(BgConfig *param0, PaletteData *param1, int param2);
 void BallCapsuleSystem_CreateSealCountWindows(BallCapsuleSystem *ballCapsuleSys);
-void BallCapsuleSys_DeleteSealCountWindows(BallCapsuleSystem *ballCapsuleSys);
+void BallCapsuleSystem_DeleteSealCountWindows(BallCapsuleSystem *ballCapsuleSys);
 void Window_SetSealNameMessage(Window *param0, int param1);
 void ov76_0223CE2C(void);
 void BallCapsuleSystem_ScreenFadeIn(void);
@@ -68,7 +68,7 @@ void ov76_0223CE84(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
 void ov76_0223CF24(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
 void ov76_0223CF88(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
 void ov76_0223CFEC(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
-void BallCapsuleSys_CreateStaticButtons(BallCapsuleSystem *ballCapsuleSys);
+void BallCapsuleSystem_CreateStaticButtons(BallCapsuleSystem *ballCapsuleSys);
 void BallCapsuleSystem_NOP(BallCapsuleSystem *ballCapsuleSys);
 void BallCapsuleSystem_DeleteStaticButtons(BallCapsuleSystem *ballCapsuleSys);
 
@@ -331,12 +331,12 @@ void ov76_0223BD30(BallCapsuleSystem *ballCapsuleSys, s8 param1, int param2)
         int i;
 
         for (int i = 0; i < SEALS_PER_CAPSULE; i++) {
-            if (ballCapsuleSys->placedSeals[i].tapped == FALSE) {
+            if (ballCapsuleSys->currentCapsuleSeals[i].tapped == FALSE) {
                 v0->sealSprite[i] = NULL;
                 continue;
             }
 
-            v0->sealSprite[i] = ballCapsuleSys->placedSeals[i].sealSprite;
+            v0->sealSprite[i] = ballCapsuleSys->currentCapsuleSeals[i].sealSprite;
 
             s16 x, y;
             ManagedSprite_GetPositionXY(v0->sealSprite[i], &x, &y);
@@ -810,7 +810,7 @@ void BallCapsuleSystem_UpdateCapsuleData(BallCapsuleSystem *ballCapsuleSys)
     }
 }
 
-void BallCapsuleSys_SwapCapsules(BallCapsuleSystem *ballCapsuleSys, int indexA, int indexB)
+void BallCapsuleSystem_SwapCapsules(BallCapsuleSystem *ballCapsuleSys, int indexA, int indexB)
 {
     int partyA = ballCapsuleSys->capsuleData[indexA].partyIndex;
     int partyB = ballCapsuleSys->capsuleData[indexB].partyIndex;
@@ -954,7 +954,7 @@ void BallCapsuleSystem_PrintSealCountsToWindows(BallCapsuleSystem *ballCapsuleSy
     }
 }
 
-void BallCapsuleSys_UpdateWindowSealCount(BallCapsuleSystem *ballCapsuleSys, int pageSealIndex)
+void BallCapsuleSystem_UpdateWindowSealCount(BallCapsuleSystem *ballCapsuleSys, int pageSealIndex)
 {
     Window *window = &ballCapsuleSys->ballCapsuleEditor.windows[pageSealIndex + 3];
     int sealID = ballCapsuleSys->sealCasePages.currentPageSeals[pageSealIndex];
@@ -976,7 +976,7 @@ void BallCapsuleSys_UpdateWindowSealCount(BallCapsuleSystem *ballCapsuleSys, int
     String_Free(string);
 }
 
-void BallCapsuleSys_DeleteSealCountWindows(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_DeleteSealCountWindows(BallCapsuleSystem *ballCapsuleSys)
 {
     for (int i = BALL_CAPSULE_WINDOW_BOTTOM_SCREEN_SEAL_COUNT1; i < BALL_CAPSULE_WINDOW_MAX; i++) {
         Window_ClearAndCopyToVRAM(&ballCapsuleSys->ballCapsuleEditor.windows[i]);
@@ -1089,7 +1089,7 @@ void ov76_0223CFEC(BallCapsuleSystem *ballCapsuleSys, NARC *narc)
     SpriteSystem_LoadAnimResObjFromOpenNarc(spriteSys, spriteMan, narc, 84, TRUE, 28000 + 84);
 }
 
-void BallCapsuleSys_CreateStaticButtons(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_CreateStaticButtons(BallCapsuleSystem *ballCapsuleSys)
 {
     BallCapsuleButtonSprites *buttonSprites;
     SpriteTemplate template;
