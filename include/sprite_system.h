@@ -171,7 +171,7 @@ void ManagedSprite_GetAffineScale(ManagedSprite *managedSprite, f32 *outXScale, 
 void ManagedSprite_SetAffineZRotation(ManagedSprite *managedSprite, u16 angle);
 void ManagedSprite_OffsetAffineZRotation(ManagedSprite *managedSprite, s32 offset);
 void Sprite_SetFlipMode2(Sprite *sprite, BOOL mode);
-void ManagedSprite_SetFlipMode(ManagedSprite *managedSprite, BOOL mode);
+void ManagedSprite_SetFlipMode(ManagedSprite *managedSprite, enum SpriteFlipMode mode);
 void ManagedSprite_SetAffineTranslation(ManagedSprite *managedSprite, s16 x, s16 y);
 void ManagedSprite_SetMosaicFlag(ManagedSprite *managedSprite, BOOL mosaic);
 void Sprite_SetExplicitOamMode2(Sprite *sprite, GXOamMode mode);

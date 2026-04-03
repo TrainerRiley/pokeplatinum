@@ -84,16 +84,14 @@ static int BallCapsuleApp_Init(ApplicationManager *appMan, int *param1)
     ballCapsuleSys->ballCapsuleEditor.unk_00 = 0xFF;
     ballCapsuleSys->sealCasePages.currentPage = 0;
 
-    {
-        int extraPage = 0;
-        int sealCount = (SealCase_CountUniqueSeals(ballCapsuleSys->appData->sealCase));
+    int extraPage = 0;
+    int sealCount = (SealCase_CountUniqueSeals(ballCapsuleSys->appData->sealCase));
 
-        if (sealCount % SEALS_PER_PAGE) {
-            extraPage = 1;
-        }
-
-        ballCapsuleSys->sealCasePages.totalPages = (SealCase_CountUniqueSeals(ballCapsuleSys->appData->sealCase) / SEALS_PER_PAGE) + extraPage;
+    if (sealCount % SEALS_PER_PAGE) {
+        extraPage = 1;
     }
+
+    ballCapsuleSys->sealCasePages.totalPages = (SealCase_CountUniqueSeals(ballCapsuleSys->appData->sealCase) / SEALS_PER_PAGE) + extraPage;
 
     if (ballCapsuleSys->sealCasePages.totalPages > (SEAL_ID_MAX / SEALS_PER_PAGE)) {
         ballCapsuleSys->sealCasePages.totalPages = (SEAL_ID_MAX / SEALS_PER_PAGE);
@@ -275,14 +273,14 @@ void BallCapsuleAppData_SetSelectedCapsuleIndex(BallCapsuleAppData *appData, u8 
     appData->selectedCapsule = index;
 }
 
-u8 sub_02097F28(BallCapsuleAppData *appData)
+u8 BallCapsuleAppData_GetState(BallCapsuleAppData *appData)
 {
-    return appData->unk_2D;
+    return appData->state;
 }
 
-void sub_02097F30(BallCapsuleAppData *appData, u8 param1)
+void BallCapsuleAppData_SetState(BallCapsuleAppData *appData, u8 param1)
 {
-    appData->unk_2D = param1;
+    appData->state = param1;
 }
 
 typedef struct {
@@ -339,7 +337,7 @@ static BOOL sub_02097F38(FieldTask *fieldTask)
         break;
 
     case BALL_CAPSULE_EDITOR_2: {
-        u8 v5 = sub_02097F28(editorTask->appData);
+        u8 v5 = BallCapsuleAppData_GetState(editorTask->appData);
 
         switch (v5) {
         default:
@@ -436,7 +434,7 @@ typedef struct {
     u8 nameID;
     u8 unused_03;
     u8 unk_04;
-    u8 isChar;
+    u8 isChar; // A-Z, '?', '!' seals
     u16 price;
     u8 descriptionID;
 } SealData;

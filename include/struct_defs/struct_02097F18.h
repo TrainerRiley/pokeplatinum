@@ -8,6 +8,11 @@
 #include "pokemon.h"
 #include "savedata.h"
 
+enum BallCapsuleAppDataState {
+    BALL_CAPSULE_APP_DATA_EXIT = 0,
+    BALL_CAPSULE_APP_DATA_LIST,
+};
+
 typedef struct {
     int partyCount;
     Pokemon *mons[6];
@@ -16,7 +21,7 @@ typedef struct {
     Options *options;
     SaveData *saveData;
     u8 selectedCapsule;
-    u8 unk_2D;
+    u8 state;
     u8 padding[2];
 } BallCapsuleAppData;
 

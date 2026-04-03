@@ -10,6 +10,7 @@
 #include "struct_defs/seal_case.h"
 #include "struct_defs/sprite_animation_frame.h"
 #include "struct_defs/struct_02015958.h"
+#include "struct_defs/struct_02097F18.h"
 
 #include "battle_anim/ov12_02235E94.h"
 #include "battle_anim/struct_ov12_02236030.h"
@@ -261,7 +262,7 @@ static BOOL BallCapsuleSystem_MoveCursor(int *index)
     return TRUE;
 }
 
-static void ov76_0223D600(BallCapsuleSystem *ballCapsuleSys, int selectIndex, BOOL param2)
+static void BallCapsuleSystem_UpdateSelectHighlightPos(BallCapsuleSystem *ballCapsuleSys, int selectIndex, BOOL updateBothSelections)
 {
     s16 x, y;
     int otherIndex = 0;
@@ -271,12 +272,12 @@ static void ov76_0223D600(BallCapsuleSystem *ballCapsuleSys, int selectIndex, BO
     }
 
     GetCapsulePosition(ballCapsuleSys->selectedCapsules[selectIndex], &x, &y);
-    ManagedSprite_SetPositionXY(ballCapsuleSys->unk_2F4[selectIndex], x, y);
+    ManagedSprite_SetPositionXY(ballCapsuleSys->selectSprites[selectIndex], x, y);
 
-    if (param2 == TRUE) {
+    if (updateBothSelections == TRUE) {
         ballCapsuleSys->selectedCapsules[otherIndex] = ballCapsuleSys->selectedCapsules[selectIndex];
         GetCapsulePosition(ballCapsuleSys->selectedCapsules[otherIndex], &x, &y);
-        ManagedSprite_SetPositionXY(ballCapsuleSys->unk_2F4[otherIndex], x, y);
+        ManagedSprite_SetPositionXY(ballCapsuleSys->selectSprites[otherIndex], x, y);
     }
 }
 
@@ -290,6 +291,8 @@ enum BallCapsuleSystemState {
     BALL_CAPSULE_SYSTEM_EXIT,
     BALL_CAPSULE_SYSTEM_EXIT_EDITOR,
     BALL_CAPSULE_SYSTEM_8,
+    BALL_CAPSULE_SYSTEM_9,
+    BALL_CAPSULE_SYSTEM_10,
 };
 
 typedef int (*BallCapsuleMenuFunc)(BallCapsuleSystem *);
@@ -309,7 +312,7 @@ static BOOL BallCapsuleSystem_UpdateMainMenu(BallCapsuleSystem *ballCapsuleSys)
         ov76_0223CF24(ballCapsuleSys, narc);
         ov76_0223CF88(ballCapsuleSys, narc);
         BallCapsuleSystem_UpdateEditData(ballCapsuleSys);
-        ov76_0223C61C(ballCapsuleSys, narc);
+        BallCapsuleSystem_CreateMenuSprites(ballCapsuleSys, narc);
         CreateWindowWithScroll(ballCapsuleSys->ballCapsuleEditor.bgConfig, &ballCapsuleSys->ballCapsuleEditor.windows[0], 1, 2, 21, 27, 2, 0 + ((1 + (18 + 12)) + 9));
         BallCapsuleSystem_LoadSelectedCapsulePlacedSeals(ballCapsuleSys);
         BallCapsuleSystem_SetDrawFlagOnTappedSeal(ballCapsuleSys, 1);
@@ -317,14 +320,14 @@ static BOOL BallCapsuleSystem_UpdateMainMenu(BallCapsuleSystem *ballCapsuleSys)
         ov76_0223CFEC(ballCapsuleSys, narc);
         BallCapsuleSystem_CreateStaticButtons(ballCapsuleSys);
         ov76_0223C438(ballCapsuleSys, narc);
-        ov76_0223C4AC(ballCapsuleSys);
+        BallCapsuleSystem_CreatePointerSprites(ballCapsuleSys);
         BallCapsuleSystem_SaveCapsuleToSelectedSlot(ballCapsuleSys);
         BallCapsuleSystem_LoadSealCounts(ballCapsuleSys);
         BallCapsuleSystem_LoadCurrentPageSeals(ballCapsuleSys, ballCapsuleSys->sealCasePages.currentPage);
         BallCapsuleSystem_LoadCurrentPageData(ballCapsuleSys);
         BallCapsuleSystem_CreatePageSprites(ballCapsuleSys);
         BallCapsuleSystem_SetButtonDrawFlags(ballCapsuleSys, 0);
-        ov76_0223C568(ballCapsuleSys, 0);
+        BallCapsuleSystem_SetDrawPointerSprites(ballCapsuleSys, 0);
         ov76_0223B940(ballCapsuleSys);
         ov76_0223B96C(ballCapsuleSys, 0);
         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 7);
@@ -370,7 +373,7 @@ static BOOL BallCapsuleSystem_UpdateMainMenu(BallCapsuleSystem *ballCapsuleSys)
 
             ballCapsuleSys->selectedCapsules[0] = currCursorIndex;
 
-            ov76_0223D600(ballCapsuleSys, 0, 1);
+            BallCapsuleSystem_UpdateSelectHighlightPos(ballCapsuleSys, 0, TRUE);
             BallCapsuleSystem_RemoveTappedSeal(ballCapsuleSys);
             BallCapsuleSystem_LoadSelectedCapsulePlacedSeals(ballCapsuleSys);
             BallCapsuleSystem_SetDrawFlagOnTappedSeal(ballCapsuleSys, 1);
@@ -428,9 +431,9 @@ static BOOL BallCapsuleSystem_UpdateMainMenu(BallCapsuleSystem *ballCapsuleSys)
         BallCapsuleSystem_DeleteSprites(ballCapsuleSys);
         BallCapsuleSystem_DeletePartyIcons(ballCapsuleSys);
         BallCapsuleSystem_DeleteStaticButtons(ballCapsuleSys);
-        ov76_0223C588(ballCapsuleSys);
+        BallCapsuleSystem_DeletePointerSprites(ballCapsuleSys);
         BallCapsuleSystem_UnloadEditorSprites(ballCapsuleSys);
-        sub_02097F30(ballCapsuleSys->appData, 0);
+        BallCapsuleAppData_SetState(ballCapsuleSys->appData, BALL_CAPSULE_APP_DATA_EXIT);
         return FALSE;
     }
 
@@ -764,7 +767,7 @@ void BallCapsuleSystem_DeletePokemonSprite(BallCapsuleSystem *ballCapsuleSys)
 static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
 {
     switch (ballCapsuleSys->state) {
-    case 0:
+    case BALL_CAPSULE_SYSTEM_INIT:
         BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 0);
         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 0xFFFF);
         BallCapsuleSystem_CreateSealCountWindows(ballCapsuleSys);
@@ -775,7 +778,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         ballCapsuleSys->ballCapsuleEditor.dirty = 0;
         ballCapsuleSys->state++;
         break;
-    case 1:
+    case BALL_CAPSULE_SYSTEM_FADE_IN:
         if (ov76_0223DCB0(ballCapsuleSys) == TRUE) {
             break;
         }
@@ -786,11 +789,11 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         GXLayers_EngineBToggleLayers(GX_PLANEMASK_BG2, 1);
         Bg_SetPriority(BG_LAYER_SUB_3, 1);
         BallCapsuleSystem_SetButtonDrawFlags(ballCapsuleSys, 1);
-        ov76_0223C568(ballCapsuleSys, 1);
+        BallCapsuleSystem_SetDrawPointerSprites(ballCapsuleSys, 1);
         ov76_0223B96C(ballCapsuleSys, 1);
         ballCapsuleSys->state++;
         break;
-    case 2:
+    case BALL_CAPSULE_SYSTEM_WAIT_FOR_FADE_IN:
         if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
             break;
         }
@@ -798,16 +801,16 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x1, 1 << 1, 0, 16, 0, 0);
         ballCapsuleSys->state++;
         break;
-    case 3:
+    case BALL_CAPSULE_SYSTEM_MAIN:
         if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
             break;
         }
         BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 1);
         ballCapsuleSys->state++;
         break;
-    case 4:
+    case BALL_CAPSULE_SYSTEM_EDIT_MENU:
         break;
-    case 5: {
+    case BALL_CAPSULE_SYSTEM_SHUTDOWN: {
         switch (ballCapsuleSys->unk_3DC) {
         case 0:
             GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 1);
@@ -959,7 +962,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             break;
         }
     } break;
-    case 6:
+    case BALL_CAPSULE_SYSTEM_EXIT:
         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 12);
 
         if (BallCapsuleSystem_HasCurrentCapsuleBeenEdited(ballCapsuleSys) == TRUE) {
@@ -986,7 +989,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         }
         ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_8;
         break;
-    case 7: {
+    case BALL_CAPSULE_SYSTEM_EXIT_EDITOR: {
         switch (ballCapsuleSys->unk_3DC) {
         case 0:
             if (BallCapsuleSystem_HasCurrentCapsuleBeenEdited(ballCapsuleSys) == 0) {
@@ -1081,12 +1084,12 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             ballCapsuleSys->unk_3DC = 0;
         }
     } break;
-    case 8:
+    case BALL_CAPSULE_SYSTEM_8:
         GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 1);
         PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x1, 1 << 1, 0, 0, 16, 0);
         ballCapsuleSys->state++;
         break;
-    case 9:
+    case BALL_CAPSULE_SYSTEM_9:
 
         if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
             break;
@@ -1098,13 +1101,13 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         Bg_SetPriority(BG_LAYER_SUB_3, 3);
         GXLayers_EngineBToggleLayers(GX_PLANEMASK_BG2, 0);
         BallCapsuleSystem_SetButtonDrawFlags(ballCapsuleSys, 0);
-        ov76_0223C568(ballCapsuleSys, 0);
+        BallCapsuleSystem_SetDrawPointerSprites(ballCapsuleSys, 0);
         ov76_0223B96C(ballCapsuleSys, 0);
         ov76_0223BD30(ballCapsuleSys, -1, 4);
         BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 0);
         ballCapsuleSys->state++;
         break;
-    case 10:
+    case BALL_CAPSULE_SYSTEM_10:
         if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
             break;
         }
@@ -1113,12 +1116,12 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             break;
         }
 
-        ManagedSprite_SetDrawFlag(ballCapsuleSys->unk_2F4[1], 0);
+        ManagedSprite_SetDrawFlag(ballCapsuleSys->selectSprites[1], 0);
         ov76_0223D494(ballCapsuleSys, 0, 0xff, 0);
         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 7);
         BallCapsuleSystem_DeleteSealCountWindows(ballCapsuleSys);
 
-        return 1;
+        return TRUE;
     }
 
     if (ballCapsuleSys->ballCapsuleEditor.unk_00 == 0xFF) {
@@ -1158,11 +1161,11 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
     }
 
     BallCapsuleSystem_NOP(ballCapsuleSys);
-    ov76_0223C544(ballCapsuleSys);
+    BallCapsuleSystem_UpdatePointerSprites(ballCapsuleSys);
     BallCapsuleSystem_TickPartyIcons(ballCapsuleSys);
     BallCapsuleSystem_TickSprites(ballCapsuleSys);
 
-    return 1;
+    return TRUE;
 }
 
 static BOOL ov76_0223E8A4(BallCapsuleSystem *ballCapsuleSys)
@@ -1183,9 +1186,9 @@ static BOOL ov76_0223E8A4(BallCapsuleSystem *ballCapsuleSys)
         BallCapsuleSystem_DeleteSprites(ballCapsuleSys);
         BallCapsuleSystem_DeletePartyIcons(ballCapsuleSys);
         BallCapsuleSystem_DeleteStaticButtons(ballCapsuleSys);
-        ov76_0223C588(ballCapsuleSys);
+        BallCapsuleSystem_DeletePointerSprites(ballCapsuleSys);
         BallCapsuleSystem_UnloadEditorSprites(ballCapsuleSys);
-        sub_02097F30(ballCapsuleSys->appData, 1);
+        BallCapsuleAppData_SetState(ballCapsuleSys->appData, BALL_CAPSULE_APP_DATA_LIST);
 
         return 0;
     }
@@ -1234,48 +1237,57 @@ static BOOL ov76_0223E950(BallCapsuleSystem *ballCapsuleSys)
     return 1;
 }
 
+enum BallCapsuleSystemShiftState {
+    BALL_CAPSULE_SYSTEM_SHIFT_INIT,
+    BALL_CAPSULE_SYSTEM_SHIFT_MAIN,
+    BALL_CAPSULE_SYSTEM_SHIFT_WAIT_FOR_KEY,
+    BALL_CAPSULE_SYSTEM_SHIFT_EXIT,
+};
+
 static BOOL ov76_0223E9C4(BallCapsuleSystem *ballCapsuleSys)
 {
     switch (ballCapsuleSys->state) {
-    case 0:
-        ManagedSprite_SetPriority(ballCapsuleSys->unk_2F4[0], 25);
-        ManagedSprite_SetPriority(ballCapsuleSys->unk_2F4[1], 20);
-        ManagedSprite_SetAnim(ballCapsuleSys->unk_2F4[0], 1);
+    case BALL_CAPSULE_SYSTEM_SHIFT_INIT:
+        ManagedSprite_SetPriority(ballCapsuleSys->selectSprites[0], 25);
+        ManagedSprite_SetPriority(ballCapsuleSys->selectSprites[1], 20);
+        ManagedSprite_SetAnim(ballCapsuleSys->selectSprites[0], 1);
         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 10);
-        ManagedSprite_SetDrawFlag(ballCapsuleSys->unk_2F4[1], 1);
+        ManagedSprite_SetDrawFlag(ballCapsuleSys->selectSprites[1], 1);
         ballCapsuleSys->state++;
-    case 1: {
-        BOOL v0;
+    case BALL_CAPSULE_SYSTEM_SHIFT_MAIN: {
+        BOOL cursorMoved = BallCapsuleSystem_MoveCursor(&(ballCapsuleSys->selectedCapsules[1]));
 
-        v0 = BallCapsuleSystem_MoveCursor(&(ballCapsuleSys->selectedCapsules[1]));
-
-        if (v0 == 1) {
-            ov76_0223D600(ballCapsuleSys, 1, 0);
+        if (cursorMoved == TRUE) {
+            BallCapsuleSystem_UpdateSelectHighlightPos(ballCapsuleSys, 1, FALSE);
 
             Sound_PlayEffect(SEQ_SE_CONFIRM);
+
+            // Confirm shift
         } else if (gSystem.pressedKeys & PAD_BUTTON_A) {
             BallCapsuleSystem_SwapCapsules(ballCapsuleSys, ballCapsuleSys->selectedCapsules[0], ballCapsuleSys->selectedCapsules[1]);
-            ov76_0223D600(ballCapsuleSys, 1, 1);
+            BallCapsuleSystem_UpdateSelectHighlightPos(ballCapsuleSys, 1, TRUE);
             Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 11);
-            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_WAIT_FOR_FADE_IN;
+            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_SHIFT_WAIT_FOR_KEY;
             Sound_PlayEffect(SEQ_SE_CONFIRM);
+
+            // Cancel shift
         } else if (gSystem.pressedKeys & PAD_BUTTON_B) {
-            ManagedSprite_SetDrawFlag(ballCapsuleSys->unk_2F4[1], 0);
-            ov76_0223D600(ballCapsuleSys, 0, 1);
-            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_MAIN;
+            ManagedSprite_SetDrawFlag(ballCapsuleSys->selectSprites[1], 0);
+            BallCapsuleSystem_UpdateSelectHighlightPos(ballCapsuleSys, 0, TRUE);
+            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_SHIFT_EXIT;
             Sound_PlayEffect(SEQ_SE_DP_DECIDE);
         }
     } break;
-    case 2:
+    case BALL_CAPSULE_SYSTEM_SHIFT_WAIT_FOR_KEY:
         if (gSystem.pressedKeys & (PAD_BUTTON_A | PAD_BUTTON_B | PAD_BUTTON_X | PAD_BUTTON_Y | PAD_KEY_UP | PAD_KEY_DOWN | PAD_KEY_LEFT | PAD_KEY_RIGHT)) {
-            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_MAIN;
+            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_SHIFT_EXIT;
         }
         break;
-    case 3:
-        ManagedSprite_SetPriority(ballCapsuleSys->unk_2F4[0], 20);
-        ManagedSprite_SetPriority(ballCapsuleSys->unk_2F4[1], 25);
+    case BALL_CAPSULE_SYSTEM_SHIFT_EXIT:
+        ManagedSprite_SetPriority(ballCapsuleSys->selectSprites[0], 20);
+        ManagedSprite_SetPriority(ballCapsuleSys->selectSprites[1], 25);
         ov76_0223D494(ballCapsuleSys, 0, 0xff, 0);
-        ManagedSprite_SetAnim(ballCapsuleSys->unk_2F4[0], 0);
+        ManagedSprite_SetAnim(ballCapsuleSys->selectSprites[0], 0);
         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 7);
         break;
     }

@@ -330,7 +330,7 @@ void Sprite_SetAffineOverwriteMode(Sprite *sprite, enum AffineOverwriteMode mode
     sprite->affineOverwriteMode = mode;
 }
 
-void Sprite_SetFlipMode(Sprite *sprite, u32 mode)
+void Sprite_SetFlipMode(Sprite *sprite, enum SpriteFlipMode mode)
 {
     GF_ASSERT(sprite);
     sprite->flip = mode;

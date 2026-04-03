@@ -21,6 +21,13 @@ enum AffineOverwriteMode {
     AFFINE_OVERWRITE_MODE_DOUBLE, // Extends the cell sprite's drawable area by 2x, use when the cell sprite is scaled up
 };
 
+enum SpriteFlipMode {
+    FLIP_MODE_NONE,
+    FLIP_MODE_HORIZONTAL,
+    FLIP_MODE_VERTICAL,
+    FLIP_MODE_BOTH,
+};
+
 typedef struct SpriteList SpriteList;
 
 typedef struct CellAnimationData {
@@ -159,7 +166,7 @@ void Sprite_SetDrawFlag(Sprite *sprite, BOOL draw);
 void Sprite_SetAnimateFlag(Sprite *sprite, BOOL animate);
 void Sprite_SetAnimSpeed(Sprite *sprite, fx32 speed);
 void Sprite_SetAffineOverwriteMode(Sprite *sprite, enum AffineOverwriteMode mode);
-void Sprite_SetFlipMode(Sprite *sprite, u32 mode);
+void Sprite_SetFlipMode(Sprite *sprite, enum SpriteFlipMode mode);
 const VecFx32 *Sprite_GetPosition(const Sprite *sprite);
 const VecFx32 *Sprite_GetAffineScale(const Sprite *sprite);
 u16 Sprite_GetAffineZRotation(const Sprite *sprite);

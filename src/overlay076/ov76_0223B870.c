@@ -52,7 +52,7 @@ void BallCapsuleSystem_UpdateEditData(BallCapsuleSystem *ballCapsuleSys);
 void ov76_0223C398(BallCapsuleEditor *ballCapsuleEditor);
 void ov76_0223C424(BallCapsuleEditor *ballCapsuleEditor);
 void ov76_0223C5A4(SpriteSystem *param0, SpriteManager *param1, PaletteData *param2, int param3, int param4, int param5, int param6, int param7, int param8, int param9, NARC *param10);
-void ov76_0223C61C(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
+void BallCapsuleSystem_CreateMenuSprites(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
 void BallCapsuleSystem_UpdateCapsuleData(BallCapsuleSystem *ballCapsuleSys);
 void BallCapsuleSystem_TickSprites(BallCapsuleSystem *ballCapsuleSys);
 void BallCapsuleSystem_DeleteSprites(BallCapsuleSystem *ballCapsuleSys);
@@ -524,18 +524,12 @@ void ov76_0223C110(BallCapsuleSystem *ballCapsuleSys)
 
 void BallCapsuleSystem_LoadPartyIcons(BallCapsuleSystem *ballCapsuleSys)
 {
-    // int v1;
-    // int v2;
-    // int v3;
-    // int v4;
-    Pokemon *mon;
-    SpriteTemplate spriteTemplate;
-
     for (int i = 0; i < ballCapsuleSys->appData->partyCount; i++) {
-        mon = ballCapsuleSys->appData->mons[i];
+        Pokemon *mon = ballCapsuleSys->appData->mons[i];
 
         SpriteSystem_LoadCharResObjAtEndWithHardwareMappingType(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, NARC_INDEX_POKETOOL__ICONGRA__PL_POKE_ICON, Pokemon_IconSpriteIndex(mon), FALSE, NNS_G2D_VRAM_TYPE_2DMAIN, i + 15000);
 
+        SpriteTemplate spriteTemplate;
         spriteTemplate.x = 0;
         spriteTemplate.y = 0;
         spriteTemplate.z = 0;
@@ -665,133 +659,132 @@ void ov76_0223C438(BallCapsuleSystem *ballCapsuleSys, NARC *param1)
     SpriteSystem_LoadAnimResObjFromOpenNarc(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, param1, 81, TRUE, 48000);
 }
 
-void ov76_0223C4AC(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_CreatePointerSprites(BallCapsuleSystem *ballCapsuleSys)
 {
-    int v0;
-    SpriteTemplate v1;
+    SpriteTemplate template;
     int v2[][3] = {
-        { 136, 16, 1 },
-        { 136, 128, 3 },
-        { 240, 16, 0 },
-        { 240, 128, 2 },
+        { 136, 16, FLIP_MODE_HORIZONTAL },
+        { 136, 128, FLIP_MODE_BOTH },
+        { 240, 16, FLIP_MODE_NONE },
+        { 240, 128, FLIP_MODE_VERTICAL },
     };
 
-    for (v0 = 0; v0 < 4; v0++) {
-        v1.x = v2[v0][0];
-        v1.y = v2[v0][1];
-        v1.z = 0;
-        v1.animIdx = 0;
-        v1.priority = 40;
-        v1.plttIdx = 2;
-        v1.vramType = NNS_G2D_VRAM_TYPE_2DSUB;
-        v1.bgPriority = 1;
-        v1.vramTransfer = FALSE;
-        v1.resources[0] = 45000;
-        v1.resources[1] = 26000 + 290;
-        v1.resources[2] = 47000;
-        v1.resources[3] = 48000;
-        v1.resources[4] = SPRITE_RESOURCE_NONE;
-        v1.resources[5] = SPRITE_RESOURCE_NONE;
-        ballCapsuleSys->unk_314[v0] = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &v1);
+    for (int i = 0; i < NUM_POINTER_SPRITES; i++) {
+        template.x = v2[i][0];
+        template.y = v2[i][1];
+        template.z = 0;
+        template.animIdx = 0;
+        template.priority = 40;
+        template.plttIdx = 2;
+        template.vramType = NNS_G2D_VRAM_TYPE_2DSUB;
+        template.bgPriority = 1;
+        template.vramTransfer = FALSE;
+        template.resources[0] = 45000;
+        template.resources[1] = 26000 + 290;
+        template.resources[2] = 47000;
+        template.resources[3] = 48000;
+        template.resources[4] = SPRITE_RESOURCE_NONE;
+        template.resources[5] = SPRITE_RESOURCE_NONE;
+        ballCapsuleSys->editorPointers[i] = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &template);
 
-        ManagedSprite_SetFlipMode(ballCapsuleSys->unk_314[v0], v2[v0][2]);
+        ManagedSprite_SetFlipMode(ballCapsuleSys->editorPointers[i], v2[i][2]);
     }
 }
 
-void ov76_0223C544(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_UpdatePointerSprites(BallCapsuleSystem *ballCapsuleSys)
 {
     if (ballCapsuleSys->ballCapsuleEditor.touchScreenActive == FALSE) {
         return;
     }
 
-    for (int i = 0; i < 4; i++) {
-        ManagedSprite_TickFrame(ballCapsuleSys->unk_314[i]);
+    for (int i = 0; i < NUM_POINTER_SPRITES; i++) {
+        ManagedSprite_TickFrame(ballCapsuleSys->editorPointers[i]);
     }
 }
 
-void ov76_0223C568(BallCapsuleSystem *ballCapsuleSys, int param1)
+void BallCapsuleSystem_SetDrawPointerSprites(BallCapsuleSystem *ballCapsuleSys, BOOL draw)
 {
-    for (int i = 0; i < 4; i++) {
-        ManagedSprite_SetDrawFlag(ballCapsuleSys->unk_314[i], param1);
+    for (int i = 0; i < NUM_POINTER_SPRITES; i++) {
+        ManagedSprite_SetDrawFlag(ballCapsuleSys->editorPointers[i], draw);
     }
 }
 
-void ov76_0223C588(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_DeletePointerSprites(BallCapsuleSystem *ballCapsuleSys)
 {
-    for (int i = 0; i < 4; i++) {
-        Sprite_DeleteAndFreeResources(ballCapsuleSys->unk_314[i]);
+    for (int i = 0; i < NUM_POINTER_SPRITES; i++) {
+        Sprite_DeleteAndFreeResources(ballCapsuleSys->editorPointers[i]);
     }
 }
 
-void ov76_0223C5A4(SpriteSystem *param0, SpriteManager *param1, PaletteData *param2, int param3, int param4, int param5, int param6, int param7, int param8, int param9, NARC *param10)
+void ov76_0223C5A4(SpriteSystem *spriteSys, SpriteManager *spriteMan, PaletteData *paletteData, int param3, int param4, int param5, int param6, int param7, int param8, int param9, NARC *narc)
 {
-    SpriteSystem_LoadCharResObjFromOpenNarc(param0, param1, param10, param3, TRUE, param7, param3 + 11000);
-    SpriteSystem_LoadPaletteBufferFromOpenNarc(param2, param8, param0, param1, param10, param4, FALSE, param9, param7, param4 + 11000);
-    SpriteSystem_LoadCellResObjFromOpenNarc(param0, param1, param10, param5, TRUE, param5 + 11000);
-    SpriteSystem_LoadAnimResObjFromOpenNarc(param0, param1, param10, param6, TRUE, param6 + 11000);
+    SpriteSystem_LoadCharResObjFromOpenNarc(spriteSys, spriteMan, narc, param3, TRUE, param7, param3 + 11000);
+    SpriteSystem_LoadPaletteBufferFromOpenNarc(paletteData, param8, spriteSys, spriteMan, narc, param4, FALSE, param9, param7, param4 + 11000);
+    SpriteSystem_LoadCellResObjFromOpenNarc(spriteSys, spriteMan, narc, param5, TRUE, param5 + 11000);
+    SpriteSystem_LoadAnimResObjFromOpenNarc(spriteSys, spriteMan, narc, param6, TRUE, param6 + 11000);
 }
 
-void ov76_0223C61C(BallCapsuleSystem *ballCapsuleSys, NARC *param1)
+void BallCapsuleSystem_CreateMenuSprites(BallCapsuleSystem *ballCapsuleSys, NARC *narc)
 {
-    ov76_0223C5A4(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, ballCapsuleSys->ballCapsuleEditor.paletteData, 266, 286, 174, 82, NNS_G2D_VRAM_TYPE_2DMAIN, 2, 1, param1);
-    ov76_0223C5A4(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, ballCapsuleSys->ballCapsuleEditor.paletteData, 275, 291, 179, 87, NNS_G2D_VRAM_TYPE_2DMAIN, 2, 1, param1);
+    ov76_0223C5A4(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, ballCapsuleSys->ballCapsuleEditor.paletteData, 266, 286, 174, 82, NNS_G2D_VRAM_TYPE_2DMAIN, 2, 1, narc);
+    ov76_0223C5A4(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, ballCapsuleSys->ballCapsuleEditor.paletteData, 275, 291, 179, 87, NNS_G2D_VRAM_TYPE_2DMAIN, 2, 1, narc);
     {
-        SpriteTemplate v1;
+        SpriteTemplate template;
 
         for (int i = 0; i < TOTAL_CAPSULES; i++) {
-            v1.x = 0;
-            v1.y = 0;
-            v1.z = 0;
-            v1.animIdx = ballCapsuleSys->editData[i].hasSeals;
-            v1.priority = 40 - i;
-            v1.plttIdx = 0;
-            v1.vramType = NNS_G2D_VRAM_TYPE_2DMAIN;
-            v1.bgPriority = 2;
-            v1.vramTransfer = FALSE;
-            v1.resources[0] = (266 + 11000);
-            v1.resources[1] = (286 + 11000);
-            v1.resources[2] = (174 + 11000);
-            v1.resources[3] = (82 + 11000);
-            v1.resources[4] = SPRITE_RESOURCE_NONE;
-            v1.resources[5] = SPRITE_RESOURCE_NONE;
+            template.x = 0;
+            template.y = 0;
+            template.z = 0;
+            template.animIdx = ballCapsuleSys->editData[i].hasSeals;
+            template.priority = 40 - i;
+            template.plttIdx = 0;
+            template.vramType = NNS_G2D_VRAM_TYPE_2DMAIN;
+            template.bgPriority = 2;
+            template.vramTransfer = FALSE;
+            template.resources[0] = (266 + 11000);
+            template.resources[1] = (286 + 11000);
+            template.resources[2] = (174 + 11000);
+            template.resources[3] = (82 + 11000);
+            template.resources[4] = SPRITE_RESOURCE_NONE;
+            template.resources[5] = SPRITE_RESOURCE_NONE;
 
-            ballCapsuleSys->editData[i].sprite = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &v1);
+            ballCapsuleSys->editData[i].sprite = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &template);
             {
-                s16 v2, v3;
+                s16 x, y;
 
-                GetCapsulePosition(i, &v2, &v3);
-                ManagedSprite_SetPositionXY(ballCapsuleSys->editData[i].sprite, v2, v3);
+                GetCapsulePosition(i, &x, &y);
+                ManagedSprite_SetPositionXY(ballCapsuleSys->editData[i].sprite, x, y);
             }
         }
 
-        v1.x = 0;
-        v1.y = 0;
-        v1.z = 0;
-        v1.animIdx = 0;
-        v1.priority = 20;
-        v1.plttIdx = 0;
-        v1.vramType = NNS_G2D_VRAM_TYPE_2DMAIN;
-        v1.bgPriority = 2;
-        v1.vramTransfer = FALSE;
-        v1.resources[0] = (275 + 11000);
-        v1.resources[1] = (291 + 11000);
-        v1.resources[2] = (179 + 11000);
-        v1.resources[3] = (87 + 11000);
-        v1.resources[4] = SPRITE_RESOURCE_NONE;
-        v1.resources[5] = SPRITE_RESOURCE_NONE;
+        template.x = 0;
+        template.y = 0;
+        template.z = 0;
+        template.animIdx = 0;
+        template.priority = 20;
+        template.plttIdx = 0;
+        template.vramType = NNS_G2D_VRAM_TYPE_2DMAIN;
+        template.bgPriority = 2;
+        template.vramTransfer = FALSE;
+        template.resources[0] = (275 + 11000);
+        template.resources[1] = (291 + 11000);
+        template.resources[2] = (179 + 11000);
+        template.resources[3] = (87 + 11000);
+        template.resources[4] = SPRITE_RESOURCE_NONE;
+        template.resources[5] = SPRITE_RESOURCE_NONE;
 
-        ballCapsuleSys->unk_2F4[0] = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &v1);
-        ballCapsuleSys->unk_2F4[1] = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &v1);
+        ballCapsuleSys->selectSprites[0] = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &template);
+        ballCapsuleSys->selectSprites[1] = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &template);
 
         {
-            s16 v4, v5;
+            s16 x, y;
 
-            GetCapsulePosition(ballCapsuleSys->selectedCapsules[0], &v4, &v5);
-            ManagedSprite_SetPositionXY(ballCapsuleSys->unk_2F4[0], v4, v5);
-            ManagedSprite_SetPositionXY(ballCapsuleSys->unk_2F4[1], v4, v5);
-            ManagedSprite_SetPriority(ballCapsuleSys->unk_2F4[1], 25);
-            ManagedSprite_SetAnim(ballCapsuleSys->unk_2F4[0], 0);
-            ManagedSprite_SetAnim(ballCapsuleSys->unk_2F4[1], 0);
+            GetCapsulePosition(ballCapsuleSys->selectedCapsules[0], &x, &y);
+            ManagedSprite_SetPositionXY(ballCapsuleSys->selectSprites[0], x, y);
+            ManagedSprite_SetPositionXY(ballCapsuleSys->selectSprites[1], x, y);
+            ManagedSprite_SetPriority(ballCapsuleSys->selectSprites[1], 25);
+            ManagedSprite_SetAnim(ballCapsuleSys->selectSprites[0], 0);
+            ManagedSprite_SetAnim(ballCapsuleSys->selectSprites[1], 0);
         }
     }
 }
@@ -845,8 +838,8 @@ void BallCapsuleSystem_TickSprites(BallCapsuleSystem *ballCapsuleSys)
         ManagedSprite_TickFrame(ballCapsuleSys->editData[i].sprite);
     }
 
-    ManagedSprite_TickFrame(ballCapsuleSys->unk_2F4[0]);
-    ManagedSprite_TickFrame(ballCapsuleSys->unk_2F4[1]);
+    ManagedSprite_TickFrame(ballCapsuleSys->selectSprites[0]);
+    ManagedSprite_TickFrame(ballCapsuleSys->selectSprites[1]);
 }
 
 void BallCapsuleSystem_DeleteSprites(BallCapsuleSystem *ballCapsuleSys)
@@ -855,28 +848,28 @@ void BallCapsuleSystem_DeleteSprites(BallCapsuleSystem *ballCapsuleSys)
         Sprite_DeleteAndFreeResources(ballCapsuleSys->editData[i].sprite);
     }
 
-    Sprite_DeleteAndFreeResources(ballCapsuleSys->unk_2F4[0]);
-    Sprite_DeleteAndFreeResources(ballCapsuleSys->unk_2F4[1]);
+    Sprite_DeleteAndFreeResources(ballCapsuleSys->selectSprites[0]);
+    Sprite_DeleteAndFreeResources(ballCapsuleSys->selectSprites[1]);
 }
 
-void ov76_0223C8EC(BgConfig *ballCapsuleSys, PaletteData *param1, int param2)
+void ov76_0223C8EC(BgConfig *bgConfig, PaletteData *paletteData, int messageBoxFrame)
 {
-    LoadMessageBoxGraphics(ballCapsuleSys, BG_LAYER_MAIN_1, 1, 15, param2, HEAP_ID_BALL_CAPSULE_SYSTEM);
-    PaletteData_LoadBufferFromFileStart(param1, 38, GetMessageBoxPaletteNARCMember(param2), HEAP_ID_BALL_CAPSULE_SYSTEM, 0, 0x20, 12 * 16);
-    LoadStandardWindowGraphics(ballCapsuleSys, BG_LAYER_MAIN_1, 1 + (18 + 12), 13, 0, HEAP_ID_BALL_CAPSULE_SYSTEM);
-    PaletteData_LoadBufferFromFileStart(param1, 38, GetStandardWindowPaletteNARCMember(), HEAP_ID_BALL_CAPSULE_SYSTEM, 0, 0x20, 13 * 16);
-    PaletteData_LoadBufferFromFileStart(param1, 14, 7, HEAP_ID_BALL_CAPSULE_SYSTEM, 0, 0x20, 14 * 16);
+    LoadMessageBoxGraphics(bgConfig, BG_LAYER_MAIN_1, 1, 15, messageBoxFrame, HEAP_ID_BALL_CAPSULE_SYSTEM);
+    PaletteData_LoadBufferFromFileStart(paletteData, 38, GetMessageBoxPaletteNARCMember(messageBoxFrame), HEAP_ID_BALL_CAPSULE_SYSTEM, 0, 0x20, 12 * 16);
+    LoadStandardWindowGraphics(bgConfig, BG_LAYER_MAIN_1, 1 + (18 + 12), 13, 0, HEAP_ID_BALL_CAPSULE_SYSTEM);
+    PaletteData_LoadBufferFromFileStart(paletteData, 38, GetStandardWindowPaletteNARCMember(), HEAP_ID_BALL_CAPSULE_SYSTEM, 0, 0x20, 13 * 16);
+    PaletteData_LoadBufferFromFileStart(paletteData, 14, 7, HEAP_ID_BALL_CAPSULE_SYSTEM, 0, 0x20, 14 * 16);
 }
 
-void ov76_0223C974(BgConfig *param0, PaletteData *param1, int param2)
+void ov76_0223C974(BgConfig *bgConfig, PaletteData *paletteData, int messageBoxFrame)
 {
-    LoadMessageBoxGraphics(param0, BG_LAYER_SUB_0, 1, 15, param2, HEAP_ID_BALL_CAPSULE_SYSTEM);
-    PaletteData_LoadBufferFromFileStart(param1, 38, GetMessageBoxPaletteNARCMember(param2), HEAP_ID_BALL_CAPSULE_SYSTEM, 1, 0x20, 12 * 16);
-    LoadStandardWindowGraphics(param0, BG_LAYER_SUB_0, 1 + (18 + 12), 13, 0, HEAP_ID_BALL_CAPSULE_SYSTEM);
-    PaletteData_LoadBufferFromFileStart(param1, 38, GetStandardWindowPaletteNARCMember(), HEAP_ID_BALL_CAPSULE_SYSTEM, 1, 0x20, 13 * 16);
-    PaletteData_LoadBufferFromFileStart(param1, 14, 7, HEAP_ID_BALL_CAPSULE_SYSTEM, 1, 0x20, 14 * 16);
-    PaletteData_LoadBufferFromFileStart(param1, 14, 7, HEAP_ID_BALL_CAPSULE_SYSTEM, 1, 0x20, 3 * 16);
-    PaletteData_LoadBufferFromFileStart(param1, 91, 294, HEAP_ID_BALL_CAPSULE_SYSTEM, 1, 0x20, 11 * 16);
+    LoadMessageBoxGraphics(bgConfig, BG_LAYER_SUB_0, 1, 15, messageBoxFrame, HEAP_ID_BALL_CAPSULE_SYSTEM);
+    PaletteData_LoadBufferFromFileStart(paletteData, 38, GetMessageBoxPaletteNARCMember(messageBoxFrame), HEAP_ID_BALL_CAPSULE_SYSTEM, 1, 0x20, 12 * 16);
+    LoadStandardWindowGraphics(bgConfig, BG_LAYER_SUB_0, 1 + (18 + 12), 13, 0, HEAP_ID_BALL_CAPSULE_SYSTEM);
+    PaletteData_LoadBufferFromFileStart(paletteData, 38, GetStandardWindowPaletteNARCMember(), HEAP_ID_BALL_CAPSULE_SYSTEM, 1, 0x20, 13 * 16);
+    PaletteData_LoadBufferFromFileStart(paletteData, 14, 7, HEAP_ID_BALL_CAPSULE_SYSTEM, 1, 0x20, 14 * 16);
+    PaletteData_LoadBufferFromFileStart(paletteData, 14, 7, HEAP_ID_BALL_CAPSULE_SYSTEM, 1, 0x20, 3 * 16);
+    PaletteData_LoadBufferFromFileStart(paletteData, 91, 294, HEAP_ID_BALL_CAPSULE_SYSTEM, 1, 0x20, 11 * 16);
 }
 
 void Window_SetMessage(Window *window, int messageID)

@@ -30,6 +30,8 @@
 #define CAPSULES_PER_ROW    4
 #define CAPSULES_PER_COLUMN 3
 
+#define NUM_POINTER_SPRITES 4
+
 enum BallCapsuleStatus {
     BALL_CAPSULE_EMPTY = 0,
     BALL_CAPSULE_EDITED,
@@ -163,9 +165,9 @@ typedef struct {
     BallCapsuleEditor ballCapsuleEditor;
     BallCapsuleEditData editData[TOTAL_CAPSULES];
 
-    ManagedSprite *unk_2F4[2];
+    ManagedSprite *selectSprites[2];
     ManagedSprite *partyIcons[MAX_PARTY_SIZE];
-    ManagedSprite *unk_314[4];
+    ManagedSprite *editorPointers[NUM_POINTER_SPRITES];
 
     PlacedSeal currentCapsuleSeals[SEALS_PER_CAPSULE];
 

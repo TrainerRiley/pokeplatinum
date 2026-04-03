@@ -1104,7 +1104,7 @@ void Sprite_SetFlipMode2(Sprite *sprite, int mode)
     Sprite_SetFlipMode(sprite, mode);
 }
 
-void ManagedSprite_SetFlipMode(ManagedSprite *managedSprite, int mode)
+void ManagedSprite_SetFlipMode(ManagedSprite *managedSprite, enum SpriteFlipMode mode)
 {
     Sprite_SetFlipMode2(managedSprite->sprite, mode);
 }
