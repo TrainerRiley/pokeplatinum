@@ -70,7 +70,7 @@ void ov76_0223CF88(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
 void ov76_0223CFEC(BallCapsuleSystem *ballCapsuleSys, NARC *param1);
 void BallCapsuleSystem_CreateStaticButtons(BallCapsuleSystem *ballCapsuleSys);
 void BallCapsuleSystem_NOP(BallCapsuleSystem *ballCapsuleSys);
-void BallCapsuleSystem_DeleteStaticButtons(BallCapsuleSystem *ballCapsuleSys);
+void BallCapsuleSystem_DeleteStaticButtonSprites(BallCapsuleSystem *ballCapsuleSys);
 
 // This sets the rect dimensions to be 2x the given width and height,
 // centered at the sprite's position.
@@ -240,16 +240,16 @@ void BallCapsuleSystem_CreatePageSprites(BallCapsuleSystem *ballCapsuleSys)
     spriteTemplate.vramType = NNS_G2D_VRAM_TYPE_2DSUB;
     spriteTemplate.bgPriority = 1;
     spriteTemplate.vramTransfer = FALSE;
-    spriteTemplate.resources[4] = SPRITE_RESOURCE_NONE;
-    spriteTemplate.resources[5] = SPRITE_RESOURCE_NONE;
+    spriteTemplate.resources[SPRITE_RESOURCE_MULTI_CELL] = SPRITE_RESOURCE_NONE;
+    spriteTemplate.resources[SPRITE_RESOURCE_MULTI_ANIM] = SPRITE_RESOURCE_NONE;
     spriteTemplate.plttIdx = 0;
-    spriteTemplate.resources[1] = 26000 + 292;
-    spriteTemplate.resources[2] = 27000 + 180;
-    spriteTemplate.resources[3] = 28000 + 88;
+    spriteTemplate.resources[SPRITE_RESOURCE_PLTT] = 26000 + 292;
+    spriteTemplate.resources[SPRITE_RESOURCE_CELL] = 27000 + 180;
+    spriteTemplate.resources[SPRITE_RESOURCE_ANIM] = 28000 + 88;
 
     int i;
     for (i = 0; i < SEALS_PER_PAGE; i++) {
-        spriteTemplate.resources[0] = (i + 25000);
+        spriteTemplate.resources[SPRITE_RESOURCE_CHAR] = (i + 25000);
         buttonSprites->sprites[i] = SpriteSystem_NewSprite(spriteSys, spriteMan, &spriteTemplate);
     }
 
@@ -539,12 +539,12 @@ void BallCapsuleSystem_LoadPartyIcons(BallCapsuleSystem *ballCapsuleSys)
         spriteTemplate.vramType = NNS_G2D_VRAM_TYPE_2DMAIN;
         spriteTemplate.bgPriority = 2;
         spriteTemplate.vramTransfer = FALSE;
-        spriteTemplate.resources[0] = (i + 15000);
-        spriteTemplate.resources[1] = 16000;
-        spriteTemplate.resources[2] = 17000;
-        spriteTemplate.resources[3] = 18000;
-        spriteTemplate.resources[4] = SPRITE_RESOURCE_NONE;
-        spriteTemplate.resources[5] = SPRITE_RESOURCE_NONE;
+        spriteTemplate.resources[SPRITE_RESOURCE_CHAR] = (i + 15000);
+        spriteTemplate.resources[SPRITE_RESOURCE_PLTT] = 16000;
+        spriteTemplate.resources[SPRITE_RESOURCE_CELL] = 17000;
+        spriteTemplate.resources[SPRITE_RESOURCE_ANIM] = 18000;
+        spriteTemplate.resources[SPRITE_RESOURCE_MULTI_CELL] = SPRITE_RESOURCE_NONE;
+        spriteTemplate.resources[SPRITE_RESOURCE_MULTI_ANIM] = SPRITE_RESOURCE_NONE;
 
         ballCapsuleSys->partyIcons[i] = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &spriteTemplate);
 
@@ -600,7 +600,7 @@ void BallCapsuleSystem_UpdateEditData(BallCapsuleSystem *ballCapsuleSys)
         ballCapsuleSys->editData[i].partyIndex = ballCapsuleSys->capsuleData[i].partyIndex;
 
         if ((ballCapsuleSys->editData[i].hasSeals == 0) && (ballCapsuleSys->editData[i].partyIndex != BALL_CAPSULE_INVALID_PARTY_INDEX)) {
-            BallCapsuleSystem_UnsetCapsule(ballCapsuleSys, i);
+            BallCapsuleSystem_RemoveCapsuleFromPokemon(ballCapsuleSys, i);
         }
     }
 }
@@ -679,12 +679,12 @@ void BallCapsuleSystem_CreatePointerSprites(BallCapsuleSystem *ballCapsuleSys)
         template.vramType = NNS_G2D_VRAM_TYPE_2DSUB;
         template.bgPriority = 1;
         template.vramTransfer = FALSE;
-        template.resources[0] = 45000;
-        template.resources[1] = 26000 + 290;
-        template.resources[2] = 47000;
-        template.resources[3] = 48000;
-        template.resources[4] = SPRITE_RESOURCE_NONE;
-        template.resources[5] = SPRITE_RESOURCE_NONE;
+        template.resources[SPRITE_RESOURCE_CHAR] = 45000;
+        template.resources[SPRITE_RESOURCE_PLTT] = 26000 + 290;
+        template.resources[SPRITE_RESOURCE_CELL] = 47000;
+        template.resources[SPRITE_RESOURCE_ANIM] = 48000;
+        template.resources[SPRITE_RESOURCE_MULTI_CELL] = SPRITE_RESOURCE_NONE;
+        template.resources[SPRITE_RESOURCE_MULTI_ANIM] = SPRITE_RESOURCE_NONE;
         ballCapsuleSys->editorPointers[i] = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &template);
 
         ManagedSprite_SetFlipMode(ballCapsuleSys->editorPointers[i], v2[i][2]);
@@ -741,12 +741,12 @@ void BallCapsuleSystem_CreateMenuSprites(BallCapsuleSystem *ballCapsuleSys, NARC
             template.vramType = NNS_G2D_VRAM_TYPE_2DMAIN;
             template.bgPriority = 2;
             template.vramTransfer = FALSE;
-            template.resources[0] = (266 + 11000);
-            template.resources[1] = (286 + 11000);
-            template.resources[2] = (174 + 11000);
-            template.resources[3] = (82 + 11000);
-            template.resources[4] = SPRITE_RESOURCE_NONE;
-            template.resources[5] = SPRITE_RESOURCE_NONE;
+            template.resources[SPRITE_RESOURCE_CHAR] = (266 + 11000);
+            template.resources[SPRITE_RESOURCE_PLTT] = (286 + 11000);
+            template.resources[SPRITE_RESOURCE_CELL] = (174 + 11000);
+            template.resources[SPRITE_RESOURCE_ANIM] = (82 + 11000);
+            template.resources[SPRITE_RESOURCE_MULTI_CELL] = SPRITE_RESOURCE_NONE;
+            template.resources[SPRITE_RESOURCE_MULTI_ANIM] = SPRITE_RESOURCE_NONE;
 
             ballCapsuleSys->editData[i].sprite = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &template);
             {
@@ -766,12 +766,12 @@ void BallCapsuleSystem_CreateMenuSprites(BallCapsuleSystem *ballCapsuleSys, NARC
         template.vramType = NNS_G2D_VRAM_TYPE_2DMAIN;
         template.bgPriority = 2;
         template.vramTransfer = FALSE;
-        template.resources[0] = (275 + 11000);
-        template.resources[1] = (291 + 11000);
-        template.resources[2] = (179 + 11000);
-        template.resources[3] = (87 + 11000);
-        template.resources[4] = SPRITE_RESOURCE_NONE;
-        template.resources[5] = SPRITE_RESOURCE_NONE;
+        template.resources[SPRITE_RESOURCE_CHAR] = (275 + 11000);
+        template.resources[SPRITE_RESOURCE_PLTT] = (291 + 11000);
+        template.resources[SPRITE_RESOURCE_CELL] = (179 + 11000);
+        template.resources[SPRITE_RESOURCE_ANIM] = (87 + 11000);
+        template.resources[SPRITE_RESOURCE_MULTI_CELL] = SPRITE_RESOURCE_NONE;
+        template.resources[SPRITE_RESOURCE_MULTI_ANIM] = SPRITE_RESOURCE_NONE;
 
         ballCapsuleSys->selectSprites[0] = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &template);
         ballCapsuleSys->selectSprites[1] = SpriteSystem_NewSprite(ballCapsuleSys->ballCapsuleEditor.spriteSys, ballCapsuleSys->ballCapsuleEditor.spriteMan, &template);
@@ -1099,38 +1099,38 @@ void BallCapsuleSystem_CreateStaticButtons(BallCapsuleSystem *ballCapsuleSys)
     template.vramType = NNS_G2D_VRAM_TYPE_2DSUB;
     template.bgPriority = 1;
     template.vramTransfer = FALSE;
-    template.resources[4] = SPRITE_RESOURCE_NONE;
-    template.resources[5] = SPRITE_RESOURCE_NONE;
+    template.resources[SPRITE_RESOURCE_MULTI_CELL] = SPRITE_RESOURCE_NONE;
+    template.resources[SPRITE_RESOURCE_MULTI_ANIM] = SPRITE_RESOURCE_NONE;
 
     int i = 8;
 
     template.plttIdx = 1;
-    template.resources[0] = 25000 + 273;
-    template.resources[1] = 26000 + 290;
-    template.resources[2] = 27000 + 177;
-    template.resources[3] = 28000 + 85;
+    template.resources[SPRITE_RESOURCE_CHAR] = 25000 + 273;
+    template.resources[SPRITE_RESOURCE_PLTT] = 26000 + 290;
+    template.resources[SPRITE_RESOURCE_CELL] = 27000 + 177;
+    template.resources[SPRITE_RESOURCE_ANIM] = 28000 + 85;
     buttonSprites->sprites[i++] = SpriteSystem_NewSprite(spriteSys, spriteMan, &template);
 
-    template.resources[0] = 25000 + 274;
-    template.resources[1] = 26000 + 290;
-    template.resources[2] = 27000 + 178;
-    template.resources[3] = 28000 + 86;
+    template.resources[SPRITE_RESOURCE_CHAR] = 25000 + 274;
+    template.resources[SPRITE_RESOURCE_PLTT] = 26000 + 290;
+    template.resources[SPRITE_RESOURCE_CELL] = 27000 + 178;
+    template.resources[SPRITE_RESOURCE_ANIM] = 28000 + 86;
     buttonSprites->sprites[i++] = SpriteSystem_NewSprite(spriteSys, spriteMan, &template);
 
     template.bgPriority = 1;
     template.plttIdx = 1;
-    template.resources[0] = 35000 + 272;
-    template.resources[1] = 26000 + 290;
-    template.resources[2] = 27000 + 176;
-    template.resources[3] = 28000 + 84;
+    template.resources[SPRITE_RESOURCE_CHAR] = 35000 + 272;
+    template.resources[SPRITE_RESOURCE_PLTT] = 26000 + 290;
+    template.resources[SPRITE_RESOURCE_CELL] = 27000 + 176;
+    template.resources[SPRITE_RESOURCE_ANIM] = 28000 + 84;
     buttonSprites->sprites[i++] = SpriteSystem_NewSprite(spriteSys, spriteMan, &template);
 
     template.bgPriority = 1;
     template.plttIdx = 0;
-    template.resources[0] = 25000 + 270;
-    template.resources[1] = 26000 + 290;
-    template.resources[2] = 27000 + 175;
-    template.resources[3] = 28000 + 83;
+    template.resources[SPRITE_RESOURCE_CHAR] = 25000 + 270;
+    template.resources[SPRITE_RESOURCE_PLTT] = 26000 + 290;
+    template.resources[SPRITE_RESOURCE_CELL] = 27000 + 175;
+    template.resources[SPRITE_RESOURCE_ANIM] = 28000 + 83;
     buttonSprites->sprites[i++] = SpriteSystem_NewSprite(spriteSys, spriteMan, &template);
     buttonSprites->sprites[i++] = SpriteSystem_NewSprite(spriteSys, spriteMan, &template);
 
@@ -1188,7 +1188,7 @@ void BallCapsuleSystem_NOP(BallCapsuleSystem *ballCapsuleSys)
 {
 }
 
-void BallCapsuleSystem_DeleteStaticButtons(BallCapsuleSystem *ballCapsuleSys)
+void BallCapsuleSystem_DeleteStaticButtonSprites(BallCapsuleSystem *ballCapsuleSys)
 {
     for (int i = BALL_CAPSULE_BUTTON_PREVPAGE; i < BALL_CAPSULE_BUTTON_MAX; i++) {
         Sprite_DeleteAndFreeResources(ballCapsuleSys->buttonSprites.sprites[i]);

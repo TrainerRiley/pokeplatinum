@@ -10,34 +10,24 @@
 #include "unk_0202C9F4.h"
 #include "unk_02097B18.h"
 
-int ov12_02237E54(s16 param0, s16 param1, s16 param2, s16 param3)
+int Distance(s16 x1, s16 y1, s16 x2, s16 y2)
 {
-    int v0;
-    s16 v1 = (param0 - param2);
-    s16 v2 = (param1 - param3) * -1;
+    s16 xDist = (x1 - x2);
+    s16 yDist = (y1 - y2) * -1;
 
-    v0 = FX_Sqrt(((v2 * v2) + (v1 * v1)) * FX32_ONE) / FX32_ONE;
-
-    return v0;
+    return FX_Sqrt(((yDist * yDist) + (xDist * xDist)) * FX32_ONE) / FX32_ONE;
 }
 
-int ov12_02237E80(BallSeal *param0)
+int BallSeal_DistanceFromCapsuleCenter(BallSeal *seal)
 {
-    int v0;
-    s16 v1 = BallSeal_GetX(param0);
-    s16 v2 = BallSeal_GetY(param0);
-    v0 = ov12_02237E54(v1, v2, BALL_CAPSULE_EDITOR_BALL_CENTER_X, BALL_CAPSULE_EDITOR_BALL_CENTER_Y);
+    s16 x = BallSeal_GetX(seal);
+    s16 y = BallSeal_GetY(seal);
 
-    return v0;
+    return Distance(x, y, BALL_CAPSULE_EDITOR_BALL_CENTER_X, BALL_CAPSULE_EDITOR_BALL_CENTER_Y);
 }
 
-int ov12_02237EA0(BallSeal *param0)
+int ov12_02237EA0(BallSeal *seal)
 {
-    int v0;
-    int v1;
-    int v2;
-    int v3;
-    int v4;
     const u8 v5[] = {
         0,
         8,
@@ -48,18 +38,19 @@ int ov12_02237EA0(BallSeal *param0)
         16,
     };
 
-    v3 = BallSeal_GetSealType(param0);
-    v0 = SealData_IsCharSeal(v3);
+    int sealID = BallSeal_GetSealType(seal);
+    int isChar = SealData_IsCharSeal(sealID);
+    int v1;
 
-    if (v0 == 0) {
-        v2 = ov12_02237E80(param0);
-
-        if (v2 >= (60 - 4)) {
+    if (isChar == 0) {
+        int dist = BallSeal_DistanceFromCapsuleCenter(seal);
+        int v4;
+        if (dist >= (BALL_CAPSULE_EDITOR_BALL_RADIUS - 4)) {
             v4 = 3;
         } else {
-            v4 = ((v2 + 1) / 20);
+            v4 = ((dist + 1) / 20);
 
-            if (v4 >= (60 / 20)) {
+            if (v4 >= (BALL_CAPSULE_EDITOR_BALL_RADIUS / 20)) {
                 v4 = 3;
             }
         }

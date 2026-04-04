@@ -266,16 +266,16 @@ BOOL BallCapsuleSystem_CreatePlacedSealSprite(BallCapsuleSystem *ballCapsuleSys,
     template.priority = 0;
     template.vramType = NNS_G2D_VRAM_TYPE_2DSUB;
     template.bgPriority = 1;
-    template.resources[4] = SPRITE_RESOURCE_NONE;
-    template.resources[5] = SPRITE_RESOURCE_NONE;
+    template.resources[SPRITE_RESOURCE_MULTI_CELL] = SPRITE_RESOURCE_NONE;
+    template.resources[SPRITE_RESOURCE_MULTI_ANIM] = SPRITE_RESOURCE_NONE;
 
     // unused
     int charID = SealData_GetCharID(placedSeal->type);
 
-    template.resources[0] = 20000 + placedSealIndex;
-    template.resources[1] = 21000 + 293;
-    template.resources[2] = 22000 + 93;
-    template.resources[3] = 23000 + 1;
+    template.resources[SPRITE_RESOURCE_CHAR] = 20000 + placedSealIndex;
+    template.resources[SPRITE_RESOURCE_PLTT] = 21000 + 293;
+    template.resources[SPRITE_RESOURCE_CELL] = 22000 + 93;
+    template.resources[SPRITE_RESOURCE_ANIM] = 23000 + 1;
     placedSeal->sealSprite = SpriteSystem_NewSprite(spriteSys, spriteMan, &template);
 
     ManagedSprite_TickFrame(placedSeal->sealSprite);
@@ -357,7 +357,7 @@ BOOL BallCapsuleSystem_IsPlacedSealOnBall(BallCapsuleSystem *ballCapsuleSys, int
     s16 x, y;
     ManagedSprite_GetPositionXY(ballCapsuleSys->currentCapsuleSeals[placedSealIndex].sealSprite, &x, &y);
 
-    int dist = ov12_02237E54(x, y, BALL_CAPSULE_EDITOR_BALL_CENTER_X, BALL_CAPSULE_EDITOR_BALL_CENTER_Y);
+    int dist = Distance(x, y, BALL_CAPSULE_EDITOR_BALL_CENTER_X, BALL_CAPSULE_EDITOR_BALL_CENTER_Y);
     if (dist > BALL_CAPSULE_EDITOR_BALL_RADIUS) {
         return FALSE;
     }

@@ -49,10 +49,10 @@
 #include "vram_transfer.h"
 
 static BOOL BallCapsuleSystem_UpdateMainMenu(BallCapsuleSystem *ballCapsuleSys);
-static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys);
+static BOOL BallCapsuleSystem_UpdateEditor(BallCapsuleSystem *ballCapsuleSys);
 static BOOL ov76_0223E8A4(BallCapsuleSystem *ballCapsuleSys);
-static BOOL ov76_0223E950(BallCapsuleSystem *ballCapsuleSys);
-static BOOL ov76_0223E9C4(BallCapsuleSystem *ballCapsuleSys);
+static BOOL BallCapsuleSystem_UpdateRemovePokemonMode(BallCapsuleSystem *ballCapsuleSys);
+static BOOL BallCapsuleSystem_UpdateShiftMode(BallCapsuleSystem *ballCapsuleSys);
 static BOOL ov76_0223EB1C(BallCapsuleSystem *ballCapsuleSys);
 
 void BallCapsuleSystem_SaveCapsuleToSelectedSlot(BallCapsuleSystem *ballCapsuleSys)
@@ -118,7 +118,7 @@ int BallCapsule_ContainsSeals(BallCapsule *ballCapsule)
     for (i = 0; i < SEALS_PER_CAPSULE; i++) {
         BallSeal *seals = BallCapsule_GetBallSeals(ballCapsule, i);
 
-        if (BallSeal_GetSealType(seals) != 0) {
+        if (BallSeal_GetSealType(seals) != SEAL_DUMMY) {
             numSeals++;
         }
     }
@@ -160,7 +160,7 @@ static void ov76_0223D494(BallCapsuleSystem *ballCapsuleSys, int param1, int par
 
     ballCapsuleSys->unk_3CC = param1;
     ballCapsuleSys->unk_3D8 = param3;
-    ballCapsuleSys->unk_3DC = 0;
+    ballCapsuleSys->subState = 0;
 }
 
 static int ov76_0223D4C4(BallCapsuleSystem *ballCapsuleSys)
@@ -212,10 +212,10 @@ const UnkStruct_ov76_0223BF74 Unk_ov76_0223EF3C[] = {
 
 static BOOL (*const Unk_ov76_0223EE04[])(BallCapsuleSystem *cbmw) = {
     BallCapsuleSystem_UpdateMainMenu,
-    ov76_0223DF94,
+    BallCapsuleSystem_UpdateEditor,
     ov76_0223E8A4,
-    ov76_0223E950,
-    ov76_0223E9C4,
+    BallCapsuleSystem_UpdateRemovePokemonMode,
+    BallCapsuleSystem_UpdateShiftMode,
     ov76_0223EB1C,
 };
 
@@ -281,26 +281,12 @@ static void BallCapsuleSystem_UpdateSelectHighlightPos(BallCapsuleSystem *ballCa
     }
 }
 
-enum BallCapsuleSystemState {
-    BALL_CAPSULE_SYSTEM_INIT = 0,
-    BALL_CAPSULE_SYSTEM_FADE_IN,
-    BALL_CAPSULE_SYSTEM_WAIT_FOR_FADE_IN,
-    BALL_CAPSULE_SYSTEM_MAIN,
-    BALL_CAPSULE_SYSTEM_EDIT_MENU,
-    BALL_CAPSULE_SYSTEM_SHUTDOWN,
-    BALL_CAPSULE_SYSTEM_EXIT,
-    BALL_CAPSULE_SYSTEM_EXIT_EDITOR,
-    BALL_CAPSULE_SYSTEM_8,
-    BALL_CAPSULE_SYSTEM_9,
-    BALL_CAPSULE_SYSTEM_10,
-};
-
 typedef int (*BallCapsuleMenuFunc)(BallCapsuleSystem *);
 
 static BOOL BallCapsuleSystem_UpdateMainMenu(BallCapsuleSystem *ballCapsuleSys)
 {
     switch (ballCapsuleSys->state) {
-    case BALL_CAPSULE_SYSTEM_INIT: {
+    case BALL_CAPSULE_SELECTOR_INIT: {
         NARC *narc;
 
         narc = NARC_ctor(NARC_INDEX_APPLICATION__CUSTOM_BALL__DATA__CB_DATA, HEAP_ID_BALL_CAPSULE_SYSTEM);
@@ -339,19 +325,19 @@ static BOOL BallCapsuleSystem_UpdateMainMenu(BallCapsuleSystem *ballCapsuleSys)
         ballCapsuleSys->state++;
         break;
 
-    case BALL_CAPSULE_SYSTEM_FADE_IN:
+    case BALL_CAPSULE_SELECTOR_FADE_IN:
         BallCapsuleSystem_ScreenFadeIn();
         ballCapsuleSys->state++;
         break;
 
-    case BALL_CAPSULE_SYSTEM_WAIT_FOR_FADE_IN:
+    case BALL_CAPSULE_SELECTOR_WAIT_FOR_FADE_IN:
         if (IsScreenFadeDone() != 1) {
             break;
         }
 
         ballCapsuleSys->state++;
 
-    case BALL_CAPSULE_SYSTEM_MAIN: {
+    case BALL_CAPSULE_SELECTOR_MAIN: {
         BOOL cursorMoved;
         int prevCursorIndex;
         int currCursorIndex;
@@ -386,11 +372,11 @@ static BOOL BallCapsuleSystem_UpdateMainMenu(BallCapsuleSystem *ballCapsuleSys)
             ov76_0223BF74(ballCapsuleSys->ballCapsuleEditor.bgConfig, &ballCapsuleSys->ballCapsuleEditor.windows[1], 1, ballCapsuleSys, ballCapsuleSys->selectedCapsules[0]);
             Sound_PlayEffect(SEQ_SE_CONFIRM);
         } else if (gSystem.pressedKeys & PAD_BUTTON_B) {
-            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_SHUTDOWN;
+            ballCapsuleSys->state = BALL_CAPSULE_SELECTOR_START_FADEOUT;
             Sound_PlayEffect(SEQ_SE_DP_DECIDE);
         }
     } break;
-    case BALL_CAPSULE_SYSTEM_EDIT_MENU: {
+    case BALL_CAPSULE_SELECTOR_EDIT_MENU: {
 
         u32 result = Menu_ProcessInput(ballCapsuleSys->ballCapsuleEditor.menu);
 
@@ -398,7 +384,7 @@ static BOOL BallCapsuleSystem_UpdateMainMenu(BallCapsuleSystem *ballCapsuleSys)
         case 0xfffffffe:
             ov76_0223D4C4(ballCapsuleSys);
             Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 7);
-            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_MAIN;
+            ballCapsuleSys->state = BALL_CAPSULE_SELECTOR_MAIN;
             break;
         case 0xffffffff:
             break;
@@ -414,23 +400,23 @@ static BOOL BallCapsuleSystem_UpdateMainMenu(BallCapsuleSystem *ballCapsuleSys)
                 }
 
                 Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 7);
-                ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_MAIN;
+                ballCapsuleSys->state = BALL_CAPSULE_SELECTOR_MAIN;
             }
             break;
         }
     } break;
-    case BALL_CAPSULE_SYSTEM_SHUTDOWN:
+    case BALL_CAPSULE_SELECTOR_START_FADEOUT:
         BallCapsuleSystem_ScreeFadeOut();
         ballCapsuleSys->state++;
         break;
-    case BALL_CAPSULE_SYSTEM_EXIT:
+    case BALL_CAPSULE_SELECTOR_EXIT:
         if (IsScreenFadeDone() != 1) {
             break;
         }
         Window_Remove(&ballCapsuleSys->ballCapsuleEditor.windows[0]);
         BallCapsuleSystem_DeleteSprites(ballCapsuleSys);
         BallCapsuleSystem_DeletePartyIcons(ballCapsuleSys);
-        BallCapsuleSystem_DeleteStaticButtons(ballCapsuleSys);
+        BallCapsuleSystem_DeleteStaticButtonSprites(ballCapsuleSys);
         BallCapsuleSystem_DeletePointerSprites(ballCapsuleSys);
         BallCapsuleSystem_UnloadEditorSprites(ballCapsuleSys);
         BallCapsuleAppData_SetState(ballCapsuleSys->appData, BALL_CAPSULE_APP_DATA_EXIT);
@@ -555,8 +541,8 @@ void BallCapsuleSystem_EditorTouchScreenHandler(u32 buttonID, enum TouchScreenBu
         break;
     case BALL_CAPSULE_BUTTON_CONFIRM:
         if (touchScreenState == TOUCH_BUTTON_PRESSED) {
-            if (ballCapsuleSys->state != BALL_CAPSULE_SYSTEM_SHUTDOWN) {
-                ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_SHUTDOWN;
+            if (ballCapsuleSys->state != BALL_CAPSULE_SELECTOR_START_FADEOUT) {
+                ballCapsuleSys->state = BALL_CAPSULE_SELECTOR_START_FADEOUT;
                 Sound_PlayEffect(SEQ_SE_DP_DECIDE);
             }
 
@@ -567,8 +553,8 @@ void BallCapsuleSystem_EditorTouchScreenHandler(u32 buttonID, enum TouchScreenBu
         break;
     case BALL_CAPSULE_BUTTON_DECIDE:
         if (touchScreenState == TOUCH_BUTTON_PRESSED) {
-            if (ballCapsuleSys->state != BALL_CAPSULE_SYSTEM_EXIT) {
-                ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_EXIT;
+            if (ballCapsuleSys->state != BALL_CAPSULE_SELECTOR_EXIT) {
+                ballCapsuleSys->state = BALL_CAPSULE_SELECTOR_EXIT;
                 BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 0);
                 Sound_PlayEffect(SEQ_SE_DP_PIRORIRO);
             }
@@ -580,8 +566,8 @@ void BallCapsuleSystem_EditorTouchScreenHandler(u32 buttonID, enum TouchScreenBu
         break;
     case BALL_CAPSULE_BUTTON_CANCEL:
         if (touchScreenState == TOUCH_BUTTON_PRESSED) {
-            if (ballCapsuleSys->state != BALL_CAPSULE_SYSTEM_EXIT_EDITOR) {
-                ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_EXIT_EDITOR;
+            if (ballCapsuleSys->state != BALL_CAPSULE_EDITOR_CANCEL) {
+                ballCapsuleSys->state = BALL_CAPSULE_EDITOR_CANCEL;
                 BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 0);
                 Sound_PlayEffect(SEQ_SE_DP_DECIDE);
             }
@@ -764,10 +750,10 @@ void BallCapsuleSystem_DeletePokemonSprite(BallCapsuleSystem *ballCapsuleSys)
     PokemonSprite_Delete(ballCapsuleSys->ballCapsuleEditor.monSprite);
 }
 
-static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
+static BOOL BallCapsuleSystem_UpdateEditor(BallCapsuleSystem *ballCapsuleSys)
 {
     switch (ballCapsuleSys->state) {
-    case BALL_CAPSULE_SYSTEM_INIT:
+    case BALL_CAPSULE_EDITOR_INIT:
         BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 0);
         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 0xFFFF);
         BallCapsuleSystem_CreateSealCountWindows(ballCapsuleSys);
@@ -775,15 +761,15 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         ov76_0223BD30(ballCapsuleSys, +1, 4);
         BallCapsuleSystem_SaveCapsuleToSelectedSlot(ballCapsuleSys);
         BallCapsuleSystem_LoadSealCounts(ballCapsuleSys);
-        ballCapsuleSys->ballCapsuleEditor.dirty = 0;
+        ballCapsuleSys->ballCapsuleEditor.dirty = FALSE;
         ballCapsuleSys->state++;
         break;
-    case BALL_CAPSULE_SYSTEM_FADE_IN:
+    case BALL_CAPSULE_EDITOR_INIT_START_FADE_OUT:
         if (ov76_0223DCB0(ballCapsuleSys) == TRUE) {
             break;
         }
 
-        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x1, (1 << 0) | (1 << 1), 0, 0, 16, 0);
+        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x1, PLTTBUF_MAIN_BG_F | PLTTBUF_SUB_BG_F, 0, 0, 16, 0);
         PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x4, 0xFFFF, 0, 0, 16, 0);
         GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 0);
         GXLayers_EngineBToggleLayers(GX_PLANEMASK_BG2, 1);
@@ -793,7 +779,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         ov76_0223B96C(ballCapsuleSys, 1);
         ballCapsuleSys->state++;
         break;
-    case BALL_CAPSULE_SYSTEM_WAIT_FOR_FADE_IN:
+    case BALL_CAPSULE_EDITOR_INIT_WAIT_FOR_FADE_OUT:
         if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
             break;
         }
@@ -801,20 +787,20 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x1, 1 << 1, 0, 16, 0, 0);
         ballCapsuleSys->state++;
         break;
-    case BALL_CAPSULE_SYSTEM_MAIN:
+    case BALL_CAPSULE_EDITOR_INIT_WAIT_FOR_FADE_IN:
         if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
             break;
         }
         BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 1);
         ballCapsuleSys->state++;
         break;
-    case BALL_CAPSULE_SYSTEM_EDIT_MENU:
+    case BALL_CAPSULE_EDITOR_MAIN:
         break;
-    case BALL_CAPSULE_SYSTEM_SHUTDOWN: {
-        switch (ballCapsuleSys->unk_3DC) {
+    case BALL_CAPSULE_EDITOR_DEMO_EFFECT: {
+        switch (ballCapsuleSys->subState) {
         case 0:
             GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 1);
-            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 0, 10, 0);
+            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, PLTTBUF_MAIN_BG_F | PLTTBUF_SUB_BG_F | PLTTBUF_SUB_OBJ_F | PLTTBUF_SUB_EX_BG_3_F, 0, 0, 10, 0);
             PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x8, 0xFFFF, 0, 0, 10, 0);
             BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 0);
             ballCapsuleSys->unk_3E0 = 0;
@@ -822,7 +808,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             BallCapsuleSystem_InitializeButtons(ballCapsuleSys);
             BallCapsuleSystem_SetPokemonHidden(ballCapsuleSys, 1);
             Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 13);
-            ballCapsuleSys->unk_3DC++;
+            ballCapsuleSys->subState++;
             break;
         case 1:
             if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
@@ -843,7 +829,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
                 v0.ballID = Pokemon_GetValue(ballCapsuleSys->mon, MON_DATA_POKEBALL, NULL);
 
                 ballCapsuleSys->ballCapsuleEditor.ballRotation = ov12_02237728(&v0);
-                ballCapsuleSys->unk_3DC++;
+                ballCapsuleSys->subState++;
             }
             break;
         case 2: {
@@ -862,7 +848,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             ballCapsuleSys->ballCapsuleEditor.unk_154 = ov12_02236004(HEAP_ID_BALL_CAPSULE_SYSTEM, &v3);
             ov12_02236320(ballCapsuleSys->ballCapsuleEditor.unk_154);
         }
-            ballCapsuleSys->unk_3DC++;
+            ballCapsuleSys->subState++;
             ballCapsuleSys->unk_3E0 = 0;
             break;
         case 3:
@@ -876,7 +862,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
                 BallCapsuleSystem_SetPokemonHidden(ballCapsuleSys, 0);
                 ov76_0223DE54(ballCapsuleSys);
                 Sound_PlayEffect(SEQ_SE_DP_CUSTOM05);
-                ballCapsuleSys->unk_3DC++;
+                ballCapsuleSys->subState++;
             }
             break;
         case 4: {
@@ -891,7 +877,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
                 GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 0);
                 BallCapsuleSystem_LoadPokemonSprite(ballCapsuleSys);
                 ballCapsuleSys->unk_3E0 = 0;
-                ballCapsuleSys->unk_3DC++;
+                ballCapsuleSys->subState++;
             }
         } break;
         case 5:
@@ -908,7 +894,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             }
 
             ov12_02236428(ballCapsuleSys->ballCapsuleEditor.unk_154);
-            ballCapsuleSys->unk_3DC++;
+            ballCapsuleSys->subState++;
             break;
         case 6:
             if ((++ballCapsuleSys->unk_3E0) < 30) {
@@ -934,19 +920,19 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
                 BallCapsuleSystem_SetDefaultBlend();
                 GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 1);
 
-                ballCapsuleSys->unk_3DC++;
+                ballCapsuleSys->subState++;
             }
             break;
         case 7: {
             BOOL v6 = ov76_0223DEF4(ballCapsuleSys);
 
             if ((ov12_022377F8(ballCapsuleSys->ballCapsuleEditor.ballRotation) == 0) && (v6 == 0)) {
-                PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 10, 0, 0);
+                PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, PLTTBUF_MAIN_BG_F | PLTTBUF_SUB_BG_F | PLTTBUF_SUB_OBJ_F | PLTTBUF_SUB_EX_BG_3_F, 0, 10, 0, 0);
                 PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x8, 0xFFFF, 0, 10, 0, 0);
                 BallCapsuleSystem_SetPokemonHidden(ballCapsuleSys, 1);
                 BallCapsuleSystem_DeletePokemonSprite(ballCapsuleSys);
                 ov12_0223783C(ballCapsuleSys->ballCapsuleEditor.ballRotation);
-                ballCapsuleSys->unk_3DC++;
+                ballCapsuleSys->subState++;
             }
         } break;
         default:
@@ -956,13 +942,13 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
 
             GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 0);
             BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 1);
-            ballCapsuleSys->unk_3DC = 0;
-            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_EDIT_MENU;
+            ballCapsuleSys->subState = 0;
+            ballCapsuleSys->state = BALL_CAPSULE_EDITOR_MAIN;
             Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 0xFFFF);
             break;
         }
     } break;
-    case BALL_CAPSULE_SYSTEM_EXIT:
+    case BALL_CAPSULE_EDITOR_CONFIRM:
         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 12);
 
         if (BallCapsuleSystem_HasCurrentCapsuleBeenEdited(ballCapsuleSys) == TRUE) {
@@ -972,36 +958,32 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         BallCapsuleSystem_SaveSelectedCapsuleToSealCase(ballCapsuleSys);
         BallCapsuleSystem_UpdateCapsuleData(ballCapsuleSys);
         {
-            GameRecords *v7;
-            v7 = SaveData_GetGameRecords(ballCapsuleSys->appData->saveData);
+            GameRecords *records;
+            records = SaveData_GetGameRecords(ballCapsuleSys->appData->saveData);
 
-            GameRecords_IncrementTrainerScore(v7, TRAINER_SCORE_EVENT_UNK_06);
+            GameRecords_IncrementTrainerScore(records, TRAINER_SCORE_EVENT_UNK_06);
         }
 
-        {
-            Pokemon *v8;
+        if (ballCapsuleSys->editData[ballCapsuleSys->selectedCapsules[0]].partyIndex != BALL_CAPSULE_INVALID_PARTY_INDEX) {
+            Pokemon *mon = ballCapsuleSys->appData->mons[ballCapsuleSys->editData[ballCapsuleSys->selectedCapsules[0]].partyIndex];
 
-            if (ballCapsuleSys->editData[ballCapsuleSys->selectedCapsules[0]].partyIndex != BALL_CAPSULE_INVALID_PARTY_INDEX) {
-                v8 = ballCapsuleSys->appData->mons[ballCapsuleSys->editData[ballCapsuleSys->selectedCapsules[0]].partyIndex];
-
-                Pokemon_SetValue(v8, MON_DATA_BALL_CAPSULE, SealCase_GetCapsuleById(ballCapsuleSys->appData->sealCase, ballCapsuleSys->selectedCapsules[0]));
-            }
+            Pokemon_SetValue(mon, MON_DATA_BALL_CAPSULE, SealCase_GetCapsuleById(ballCapsuleSys->appData->sealCase, ballCapsuleSys->selectedCapsules[0]));
         }
-        ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_8;
+        ballCapsuleSys->state = BALL_CAPSULE_EDITOR_EXIT_START_FADE_OUT;
         break;
-    case BALL_CAPSULE_SYSTEM_EXIT_EDITOR: {
-        switch (ballCapsuleSys->unk_3DC) {
+    case BALL_CAPSULE_EDITOR_CANCEL: {
+        switch (ballCapsuleSys->subState) {
         case 0:
-            if (BallCapsuleSystem_HasCurrentCapsuleBeenEdited(ballCapsuleSys) == 0) {
-                ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_8;
+            if (BallCapsuleSystem_HasCurrentCapsuleBeenEdited(ballCapsuleSys) == FALSE) {
+                ballCapsuleSys->state = BALL_CAPSULE_EDITOR_EXIT_START_FADE_OUT;
                 break;
             }
 
-            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 0, 10, 0);
+            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, PLTTBUF_MAIN_BG_F | PLTTBUF_SUB_BG_F | PLTTBUF_SUB_OBJ_F | PLTTBUF_SUB_EX_BG_3_F, 0, 0, 10, 0);
             PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x8, 0xFFFF, 0, 0, 10, 0);
             BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 0);
             GXLayers_EngineBToggleLayers(GX_PLANEMASK_BG0, 0);
-            ballCapsuleSys->unk_3DC++;
+            ballCapsuleSys->subState++;
             break;
         case 1:
             if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
@@ -1026,11 +1008,11 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             }
 
             Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[2], 14);
-            ballCapsuleSys->unk_3DC++;
+            ballCapsuleSys->subState++;
             break;
         case 2:
             GXLayers_EngineBToggleLayers(GX_PLANEMASK_BG0, 1);
-            ballCapsuleSys->unk_3DC++;
+            ballCapsuleSys->subState++;
         case 3: {
             u32 v10;
             v10 = sub_020159FC(ballCapsuleSys->ballCapsuleEditor.unk_150);
@@ -1045,7 +1027,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
                 Window_EraseMessageBox(&ballCapsuleSys->ballCapsuleEditor.windows[2], 1);
                 Window_ClearAndCopyToVRAM(&ballCapsuleSys->ballCapsuleEditor.windows[2]);
                 Window_Remove(&ballCapsuleSys->ballCapsuleEditor.windows[2]);
-                ballCapsuleSys->unk_3DC++;
+                ballCapsuleSys->subState++;
                 break;
             case 0:
             default:
@@ -1053,9 +1035,9 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             }
         } break;
         case 4:
-            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, (1 << 0) | (1 << 1) | (1 << 3) | (1 << 11), 0, 10, 0, 0);
+            PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x2, PLTTBUF_MAIN_BG_F | PLTTBUF_SUB_BG_F | PLTTBUF_SUB_OBJ_F | PLTTBUF_SUB_EX_BG_3_F, 0, 10, 0, 0);
             PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x8, 0xFFFF, 0, 10, 0, 0);
-            ballCapsuleSys->unk_3DC++;
+            ballCapsuleSys->subState++;
             break;
         case 5:
             if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
@@ -1070,10 +1052,10 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
                 BallCapsuleSystem_RemoveTappedSeal(ballCapsuleSys);
                 BallCapsuleSystem_LoadSelectedCapsulePlacedSeals(ballCapsuleSys);
                 BallCapsuleSystem_SetDrawFlagOnTappedSeal(ballCapsuleSys, 1);
-                ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_EXIT;
+                ballCapsuleSys->state = BALL_CAPSULE_SELECTOR_EXIT;
                 break;
             case 2:
-                ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_EDIT_MENU;
+                ballCapsuleSys->state = BALL_CAPSULE_SELECTOR_EDIT_MENU;
                 break;
             case 0:
             default:
@@ -1081,21 +1063,21 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
             }
 
             BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 1);
-            ballCapsuleSys->unk_3DC = 0;
+            ballCapsuleSys->subState = 0;
         }
     } break;
-    case BALL_CAPSULE_SYSTEM_8:
+    case BALL_CAPSULE_EDITOR_EXIT_START_FADE_OUT:
         GXLayers_EngineAToggleLayers(GX_PLANEMASK_OBJ, 1);
-        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x1, 1 << 1, 0, 0, 16, 0);
+        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x1, PLTTBUF_SUB_BG_F, 0, 0, 16, 0);
         ballCapsuleSys->state++;
         break;
-    case BALL_CAPSULE_SYSTEM_9:
+    case BALL_CAPSULE_EDITOR_EXIT_WAIT_FOR_FADE_OUT:
 
         if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
             break;
         }
 
-        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x1, 1 << 0, 0, 16, 0, 0);
+        PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x1, PLTTBUF_MAIN_BG_F, 0, 16, 0, 0);
         PaletteData_StartFade(ballCapsuleSys->ballCapsuleEditor.paletteData, 0x4, 0xFFFF, 0, 16, 0, 0);
         Bg_SetPriority(BG_LAYER_MAIN_3, 3);
         Bg_SetPriority(BG_LAYER_SUB_3, 3);
@@ -1107,7 +1089,7 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
         BallCapsuleSystem_SetTouchScreenActive(ballCapsuleSys, 0);
         ballCapsuleSys->state++;
         break;
-    case BALL_CAPSULE_SYSTEM_10:
+    case BALL_CAPSULE_EDITOR_EXIT:
         if (PaletteData_GetSelectedBuffersMask(ballCapsuleSys->ballCapsuleEditor.paletteData) != 0) {
             break;
         }
@@ -1168,16 +1150,22 @@ static BOOL ov76_0223DF94(BallCapsuleSystem *ballCapsuleSys)
     return TRUE;
 }
 
+enum BallCapsuleAssignPokemonState {
+    BALL_CAPSULE_ASSIGN_INIT,
+    BALL_CAPSULE_ASSIGN_START_FADE_OUT,
+    BALL_CAPSULE_ASSIGN_WAIT_FOR_FADE,
+};
+
 static BOOL ov76_0223E8A4(BallCapsuleSystem *ballCapsuleSys)
 {
     switch (ballCapsuleSys->state) {
-    case 0:
+    case BALL_CAPSULE_ASSIGN_INIT:
         ballCapsuleSys->state++;
-    case 1:
+    case BALL_CAPSULE_ASSIGN_START_FADE_OUT:
         BallCapsuleSystem_ScreeFadeOut();
         ballCapsuleSys->state++;
         break;
-    case 2:
+    case BALL_CAPSULE_ASSIGN_WAIT_FOR_FADE:
         if (IsScreenFadeDone() != TRUE) {
             break;
         }
@@ -1185,47 +1173,53 @@ static BOOL ov76_0223E8A4(BallCapsuleSystem *ballCapsuleSys)
         Window_Remove(&ballCapsuleSys->ballCapsuleEditor.windows[0]);
         BallCapsuleSystem_DeleteSprites(ballCapsuleSys);
         BallCapsuleSystem_DeletePartyIcons(ballCapsuleSys);
-        BallCapsuleSystem_DeleteStaticButtons(ballCapsuleSys);
+        BallCapsuleSystem_DeleteStaticButtonSprites(ballCapsuleSys);
         BallCapsuleSystem_DeletePointerSprites(ballCapsuleSys);
         BallCapsuleSystem_UnloadEditorSprites(ballCapsuleSys);
         BallCapsuleAppData_SetState(ballCapsuleSys->appData, BALL_CAPSULE_APP_DATA_LIST);
 
-        return 0;
+        return FALSE;
     }
 
     BallCapsuleSystem_TickPartyIcons(ballCapsuleSys);
     BallCapsuleSystem_TickSprites(ballCapsuleSys);
 
-    return 1;
+    return TRUE;
 }
 
-void BallCapsuleSystem_UnsetCapsule(BallCapsuleSystem *ballCapsuleSys, int param1)
+void BallCapsuleSystem_RemoveCapsuleFromPokemon(BallCapsuleSystem *ballCapsuleSys, int capsuleIndex)
 {
     int capsuleNone = 0;
-    int partyIndex = ballCapsuleSys->capsuleData[param1].partyIndex;
+    int partyIndex = ballCapsuleSys->capsuleData[capsuleIndex].partyIndex;
 
     if (partyIndex != BALL_CAPSULE_INVALID_PARTY_INDEX) {
         Pokemon_SetValue(ballCapsuleSys->appData->mons[partyIndex], MON_DATA_BALL_CAPSULE_ID, (u8 *)&capsuleNone);
     }
 
-    ballCapsuleSys->capsuleData[param1].partyIndex = BALL_CAPSULE_INVALID_PARTY_INDEX;
+    ballCapsuleSys->capsuleData[capsuleIndex].partyIndex = BALL_CAPSULE_INVALID_PARTY_INDEX;
     BallCapsuleSystem_UpdateCapsuleData(ballCapsuleSys);
 }
 
-static BOOL ov76_0223E950(BallCapsuleSystem *ballCapsuleSys)
+enum BallCapsuleRemoveMonState {
+    BALL_CAPSULE_REMOVE_INIT = 0,
+    BALL_CAPSULE_REMOVE_MAIN,
+    BALL_CAPSULE_REMOVE_EXIT,
+};
+
+static BOOL BallCapsuleSystem_UpdateRemovePokemonMode(BallCapsuleSystem *ballCapsuleSys)
 {
     switch (ballCapsuleSys->state) {
-    case 0:
-        BallCapsuleSystem_UnsetCapsule(ballCapsuleSys, ballCapsuleSys->selectedCapsules[0]);
+    case BALL_CAPSULE_REMOVE_INIT:
+        BallCapsuleSystem_RemoveCapsuleFromPokemon(ballCapsuleSys, ballCapsuleSys->selectedCapsules[0]);
         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 9);
         ballCapsuleSys->state++;
         break;
-    case 1:
-        if (gSystem.pressedKeys & (0x1 | 0x2 | 0x400 | 0x800 | 0x40 | 0x80 | 0x20 | 0x10)) {
+    case BALL_CAPSULE_REMOVE_MAIN:
+        if (gSystem.pressedKeys & (PAD_BUTTON_A | PAD_BUTTON_B | PAD_BUTTON_X | PAD_BUTTON_Y | PAD_KEY_UP | PAD_KEY_DOWN | PAD_KEY_LEFT | PAD_KEY_RIGHT)) {
             ballCapsuleSys->state++;
         }
         break;
-    case 2:
+    case BALL_CAPSULE_REMOVE_EXIT:
         ov76_0223D494(ballCapsuleSys, 0, 0xff, 0);
         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 7);
         break;
@@ -1234,27 +1228,27 @@ static BOOL ov76_0223E950(BallCapsuleSystem *ballCapsuleSys)
     BallCapsuleSystem_TickPartyIcons(ballCapsuleSys);
     BallCapsuleSystem_TickSprites(ballCapsuleSys);
 
-    return 1;
+    return TRUE;
 }
 
 enum BallCapsuleSystemShiftState {
-    BALL_CAPSULE_SYSTEM_SHIFT_INIT,
-    BALL_CAPSULE_SYSTEM_SHIFT_MAIN,
-    BALL_CAPSULE_SYSTEM_SHIFT_WAIT_FOR_KEY,
-    BALL_CAPSULE_SYSTEM_SHIFT_EXIT,
+    BALL_CAPSULE_SELECTOR_SHIFT_INIT,
+    BALL_CAPSULE_SELECTOR_SHIFT_MAIN,
+    BALL_CAPSULE_SELECTOR_SHIFT_WAIT_FOR_KEY,
+    BALL_CAPSULE_SELECTOR_SHIFT_EXIT,
 };
 
-static BOOL ov76_0223E9C4(BallCapsuleSystem *ballCapsuleSys)
+static BOOL BallCapsuleSystem_UpdateShiftMode(BallCapsuleSystem *ballCapsuleSys)
 {
     switch (ballCapsuleSys->state) {
-    case BALL_CAPSULE_SYSTEM_SHIFT_INIT:
+    case BALL_CAPSULE_SELECTOR_SHIFT_INIT:
         ManagedSprite_SetPriority(ballCapsuleSys->selectSprites[0], 25);
         ManagedSprite_SetPriority(ballCapsuleSys->selectSprites[1], 20);
         ManagedSprite_SetAnim(ballCapsuleSys->selectSprites[0], 1);
         Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 10);
         ManagedSprite_SetDrawFlag(ballCapsuleSys->selectSprites[1], 1);
         ballCapsuleSys->state++;
-    case BALL_CAPSULE_SYSTEM_SHIFT_MAIN: {
+    case BALL_CAPSULE_SELECTOR_SHIFT_MAIN: {
         BOOL cursorMoved = BallCapsuleSystem_MoveCursor(&(ballCapsuleSys->selectedCapsules[1]));
 
         if (cursorMoved == TRUE) {
@@ -1267,23 +1261,23 @@ static BOOL ov76_0223E9C4(BallCapsuleSystem *ballCapsuleSys)
             BallCapsuleSystem_SwapCapsules(ballCapsuleSys, ballCapsuleSys->selectedCapsules[0], ballCapsuleSys->selectedCapsules[1]);
             BallCapsuleSystem_UpdateSelectHighlightPos(ballCapsuleSys, 1, TRUE);
             Window_SetMessage(&ballCapsuleSys->ballCapsuleEditor.windows[0], 11);
-            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_SHIFT_WAIT_FOR_KEY;
+            ballCapsuleSys->state = BALL_CAPSULE_SELECTOR_SHIFT_WAIT_FOR_KEY;
             Sound_PlayEffect(SEQ_SE_CONFIRM);
 
             // Cancel shift
         } else if (gSystem.pressedKeys & PAD_BUTTON_B) {
             ManagedSprite_SetDrawFlag(ballCapsuleSys->selectSprites[1], 0);
             BallCapsuleSystem_UpdateSelectHighlightPos(ballCapsuleSys, 0, TRUE);
-            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_SHIFT_EXIT;
+            ballCapsuleSys->state = BALL_CAPSULE_SELECTOR_SHIFT_EXIT;
             Sound_PlayEffect(SEQ_SE_DP_DECIDE);
         }
     } break;
-    case BALL_CAPSULE_SYSTEM_SHIFT_WAIT_FOR_KEY:
+    case BALL_CAPSULE_SELECTOR_SHIFT_WAIT_FOR_KEY:
         if (gSystem.pressedKeys & (PAD_BUTTON_A | PAD_BUTTON_B | PAD_BUTTON_X | PAD_BUTTON_Y | PAD_KEY_UP | PAD_KEY_DOWN | PAD_KEY_LEFT | PAD_KEY_RIGHT)) {
-            ballCapsuleSys->state = BALL_CAPSULE_SYSTEM_SHIFT_EXIT;
+            ballCapsuleSys->state = BALL_CAPSULE_SELECTOR_SHIFT_EXIT;
         }
         break;
-    case BALL_CAPSULE_SYSTEM_SHIFT_EXIT:
+    case BALL_CAPSULE_SELECTOR_SHIFT_EXIT:
         ManagedSprite_SetPriority(ballCapsuleSys->selectSprites[0], 20);
         ManagedSprite_SetPriority(ballCapsuleSys->selectSprites[1], 25);
         ov76_0223D494(ballCapsuleSys, 0, 0xff, 0);

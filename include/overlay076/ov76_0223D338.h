@@ -27,7 +27,7 @@ void BallCapsuleSystem_InitializeButtons(BallCapsuleSystem *ballCapsuleSys);
 void BallCapsuleSystem_LoadPokemonSprite(BallCapsuleSystem *ballCapsuleSys);
 void BallCapsuleSystem_SetPokemonHidden(BallCapsuleSystem *ballCapsuleSys, int param1);
 void BallCapsuleSystem_DeletePokemonSprite(BallCapsuleSystem *ballCapsuleSys);
-void BallCapsuleSystem_UnsetCapsule(BallCapsuleSystem *ballCapsuleSys, int param1);
+void BallCapsuleSystem_RemoveCapsuleFromPokemon(BallCapsuleSystem *ballCapsuleSys, int capsuleIndex);
 void ov76_0223EB20(int param0);
 void ov76_0223EB54(int param0);
 void ov76_0223EB64(BgConfig *param0);

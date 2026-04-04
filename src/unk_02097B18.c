@@ -293,24 +293,24 @@ typedef struct {
     int state;
 } BallCapsuleEditorTask;
 
-enum BallCapsuleEditorState {
-    BALL_CAPSULE_EDITOR_INIT = 0,
-    BALL_CAPSULE_EDITOR_START,
-    BALL_CAPSULE_EDITOR_2,
-    BALL_CAPSULE_EDITOR_PARTY,
-    BALL_CAPSULE_EDITOR_SAVE_TO_MON,
-    BALL_CAPSULE_EDITOR_EXIT,
-    BALL_CAPSULE_EDITOR_SHUTDOWN,
+enum BallCapsuleAppState {
+    BALL_CAPSULE_APP_INIT = 0,
+    BALL_CAPSULE_APP_START,
+    BALL_CAPSULE_APP_MAIN,
+    BALL_CAPSULE_APP_PARTY,
+    BALL_CAPSULE_APP_SAVE_TO_MON,
+    BALL_CAPSULE_APP_CANCEL,
+    BALL_CAPSULE_APP_SHUTDOWN,
 };
 
-static BOOL sub_02097F38(FieldTask *fieldTask)
+static BOOL FieldTask_BallCapsuleEditor(FieldTask *fieldTask)
 {
     BallCapsuleEditorTask *editorTask = FieldTask_GetEnv(fieldTask);
     BallCapsuleAppData *appData = editorTask->appData;
     FieldSystem *fieldSystem = FieldTask_GetFieldSystem(fieldTask);
 
     switch (editorTask->state) {
-    case BALL_CAPSULE_EDITOR_INIT:
+    case BALL_CAPSULE_APP_INIT:
 
         FieldTransition_FinishMap(fieldTask);
         appData->sealCase = SaveData_GetSealCase(editorTask->saveData);
@@ -328,31 +328,31 @@ static BOOL sub_02097F38(FieldTask *fieldTask)
         for (; i < MAX_PARTY_SIZE; i++) {
             appData->mons[i] = NULL;
         }
-        editorTask->state = BALL_CAPSULE_EDITOR_START;
+        editorTask->state = BALL_CAPSULE_APP_START;
         break;
 
-    case BALL_CAPSULE_EDITOR_START:
+    case BALL_CAPSULE_APP_START:
         FieldTask_RunApplication(fieldTask, &gBallCapsuleSystemAppTemplate, appData);
-        editorTask->state = BALL_CAPSULE_EDITOR_2;
+        editorTask->state = BALL_CAPSULE_APP_MAIN;
         break;
 
-    case BALL_CAPSULE_EDITOR_2: {
-        u8 v5 = BallCapsuleAppData_GetState(editorTask->appData);
+    case BALL_CAPSULE_APP_MAIN: {
+        u8 state = BallCapsuleAppData_GetState(editorTask->appData);
 
-        switch (v5) {
+        switch (state) {
         default:
             GF_ASSERT(0);
-        case 0:
-            editorTask->state = BALL_CAPSULE_EDITOR_EXIT;
+        case BALL_CAPSULE_APP_DATA_EXIT:
+            editorTask->state = BALL_CAPSULE_APP_CANCEL;
             break;
 
-        case 1:
-            editorTask->state = BALL_CAPSULE_EDITOR_PARTY;
+        case BALL_CAPSULE_APP_DATA_LIST:
+            editorTask->state = BALL_CAPSULE_APP_PARTY;
             break;
         }
     } break;
 
-    case BALL_CAPSULE_EDITOR_PARTY: {
+    case BALL_CAPSULE_APP_PARTY: {
         PartyMenu *partyMenu = editorTask->partyMenu;
 
         partyMenu->party = appData->party;
@@ -364,10 +364,10 @@ static BOOL sub_02097F38(FieldTask *fieldTask)
         partyMenu->options = appData->options;
 
         FieldTask_RunApplication(fieldTask, &gPokemonPartyAppTemplate, partyMenu);
-        editorTask->state = BALL_CAPSULE_EDITOR_SAVE_TO_MON;
+        editorTask->state = BALL_CAPSULE_APP_SAVE_TO_MON;
     } break;
 
-    case BALL_CAPSULE_EDITOR_SAVE_TO_MON: {
+    case BALL_CAPSULE_APP_SAVE_TO_MON: {
         PartyMenu *partyMenu = editorTask->partyMenu;
         Pokemon *mon;
         BallCapsule *ballCapsule;
@@ -393,15 +393,15 @@ static BOOL sub_02097F38(FieldTask *fieldTask)
             FieldSystem_SaveTVEpisodeSegment_SealClubShow(broadcast, mon, sealID);
         }
     }
-        editorTask->state = BALL_CAPSULE_EDITOR_START;
+        editorTask->state = BALL_CAPSULE_APP_START;
         break;
 
-    case BALL_CAPSULE_EDITOR_EXIT:
+    case BALL_CAPSULE_APP_CANCEL:
         FieldTransition_StartMap(fieldTask);
-        editorTask->state = BALL_CAPSULE_EDITOR_SHUTDOWN;
+        editorTask->state = BALL_CAPSULE_APP_SHUTDOWN;
         break;
 
-    case BALL_CAPSULE_EDITOR_SHUTDOWN:
+    case BALL_CAPSULE_APP_SHUTDOWN:
         Heap_Free(editorTask->partyMenu);
         Heap_Free(editorTask->appData);
         Heap_Free(editorTask);
@@ -426,7 +426,7 @@ void BeginCapsuleEditorTask(FieldTask *fieldTask, SaveData *saveData)
     editorTask->partyMenu = Heap_Alloc(HEAP_ID_FIELD2, sizeof(PartyMenu));
     memset(editorTask->partyMenu, 0, sizeof(PartyMenu));
 
-    FieldTask_InitCall(fieldTask, sub_02097F38, editorTask);
+    FieldTask_InitCall(fieldTask, FieldTask_BallCapsuleEditor, editorTask);
 }
 
 typedef struct {

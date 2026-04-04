@@ -64,6 +64,6 @@ void ov76_0223CFEC(BallCapsuleSystem *ballCapsuleSys, NARC *narc);
 void BallCapsuleSystem_CreateStaticButtons(BallCapsuleSystem *ballCapsuleSys);
 void BallCapsuleSystem_SetButtonDrawFlags(BallCapsuleSystem *ballCapsuleSys, BOOL draw);
 void BallCapsuleSystem_NOP(BallCapsuleSystem *ballCapsuleSys);
-void BallCapsuleSystem_DeleteStaticButtons(BallCapsuleSystem *ballCapsuleSys);
+void BallCapsuleSystem_DeleteStaticButtonSprites(BallCapsuleSystem *ballCapsuleSys);
 
 #endif // POKEPLATINUM_OV76_0223B870_H
